@@ -1,5 +1,5 @@
 class Api::UsersController < ApplicationController
-  def index
+  def show
     @users = []
     ints = get_param_ints
     ints.each do |i|
@@ -11,12 +11,12 @@ class Api::UsersController < ApplicationController
         user.update!(steam_name: steam_name)
         @users.push(user)
       else
-        user.create!(steam_id: steam_id, steam_name: steam_name)
+        user = User.create!(steam_id: steam_id, steam_name: steam_name)
         @users.push(user)
       end
     end
 
-    render :index, status: 200
+    render :show, status: 200
   end
 
   def get_param_ints
