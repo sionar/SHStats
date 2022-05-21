@@ -1,5 +1,5 @@
 json.set! user.steam_id do
-  json.id user.steam_id
+  json.steam_id user.steam_id
   json.steam_name user.steam_name
   json.total_games user.total_games
   json.total_wins user.total_wins
@@ -13,5 +13,5 @@ json.set! user.steam_id do
   json.fascist_wr user.fascist_wr
   json.hitler_wr user.hitler_wr
   json.gamble_attempts user.gamble_attempts
-  user.gamble_successes user.gamble_successes
+  json.gamble_successes user.gamble_successes
 end
