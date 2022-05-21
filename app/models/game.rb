@@ -1,5 +1,5 @@
 class Game < ApplicationRecord
-  validates :game_type, :num_players, winning_team, win_type, presence: true
+  validates :game_type, :num_players, :winning_team, :win_type, presence: true
   validates :game_type, inclusion: { in: %w(vanilla expansion) }
   validates :winning_team, inclusion: { in: %w(liberal fascist) }
   validates :win_type, inclusion: { in: %w(policy hitler) }
