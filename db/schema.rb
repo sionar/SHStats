@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_05_21_222222) do
+ActiveRecord::Schema[7.0].define(version: 2022_05_21_234014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -38,19 +38,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_21_222222) do
     t.datetime "updated_at", null: false
     t.string "steam_id", null: false
     t.string "steam_name", null: false
-    t.integer "liberal_wins", default: 0
-    t.integer "fascist_wins", default: 0
-    t.integer "hitler_wins", default: 0
-    t.float "liberal_wr", default: 0.0
-    t.float "fascist_wr", default: 0.0
-    t.float "hitler_wr", default: 0.0
     t.integer "gamble_successes", default: 0
     t.integer "gamble_attempts", default: 0
-    t.integer "total_games", default: 0
-    t.integer "total_wins", default: 0
-    t.integer "liberal_games", default: 0
-    t.integer "fascist_games", default: 0
-    t.integer "hitler_games", default: 0
     t.index ["steam_id"], name: "index_users_on_steam_id", unique: true
     t.index ["steam_name"], name: "index_users_on_steam_name"
   end
