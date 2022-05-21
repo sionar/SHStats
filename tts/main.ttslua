@@ -1,0 +1,124 @@
+------------------Constants
+VERSION = '3.0.0'
+DEBUG = false
+COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
+START_POS = {x = 100, y = 1.1, z = 8}
+
+
+------------------Variables
+gameState = {
+  gameType = 'vanilla',
+  isStarted = false,
+  isRecorded = false,
+  sessionPlayers = {},
+  startTime = 0,
+}
+stats = {}
+statsSettings = {
+  numPlayers = 0,
+  gameType = 'any',
+  offset= 0,
+  sortField = 'total',
+  sortDirection = 'asc',
+}
+
+
+------------------Events
+function onLoad(saveString)
+  if not (saveString == '') then
+      local save = JSON.decode(saveString)
+      gameState = save['gs'] or gameState
+      stats = save['st'] or stats
+      statsSettings = save['ss'] or statsSettings
+  end
+
+  gameState.isRecorded = false
+  gameState.startTime = os.time()
+  updatePlayers()
+  moveBoard()
+  checkStarted()
+  self.setDescription('v ' .. VERSION .. '\nMade by Sionar')
+end
+
+function onSave()
+  local save = {}
+  save['gs'] = gameState
+  save['st'] = stats
+  save['ss'] = statsSettings
+  local saveString = JSON.encode(save)
+  return saveString
+end
+
+
+------------------onLoad Functions
+function updatePlayers()
+  local nextGameState = {}
+  for k,v in pairs(gameState) do
+    nextGameState[k] = gameState[k]
+  end
+
+  local entry = {}
+  local roles = {}
+  local sessionPlayers = {}
+  local globalName = Global.getVar('MOD_NAME')
+  if globalName == 'Secret Hitler: CE' then
+    roles = Global.getTable('roles')
+    nextGameState.isStarted = Global.getVar('started')
+  end
+  local players = nil
+  if not nextGameState.isStarted then
+    players = getSeatedPlayers()
+  else
+    players = Global.getTable('players')
+  end
+  if players ~= nil then
+    for k,v in pairs(players) do
+      entry = {id = Player[v].steam_id, role = roles[v], nickname = Player[v].steam_name}
+      table.insert(sessionPlayers,entry)
+    end
+  end
+  nextGameState.sessionPlayers = sessionPlayers
+  gameState = nextGameState
+  broadcastToAll('Seated players updated.', {0,0,1})
+end
+
+function moveBoard()
+  local globalName = Global.getVar('MOD_NAME')
+  if globalName == 'Secret Hitler: CE' then
+    local allObjs = getAllObjects()
+    local numFound = 0
+    for k,v in pairs(allObjs) do
+      if v.getName() == 'Secret Hitler Scoreboard Web' then
+        numFound = numFound + 1
+      end
+    end
+    local xOffset = numFound * 30
+    self.setPositionSmooth({START_POS['x'] + xOffset, START_POS['y'], START_POS['z']})
+    self.setLock(true)
+  end
+end
+
+function checkStarted()
+  Wait.time(checkStartedTimer, 5)
+end
+
+function checkStartedTimer()
+  local isStarted = Global.getVar('started')
+  if isStarted then
+    updatePlayers()
+  else
+    checkStarted()
+  end
+end
+
+function getPermission(player)
+  local hasPermission = player.admin or player.promoted
+  if not hasPermission then
+    player.print('You do not have permission to do this action.', {1,0,0})
+  end
+  return hasPermission
+end
+
+
+------------------Main Functions
+function nullFunc() end
