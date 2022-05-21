@@ -37,6 +37,7 @@ function onLoad(saveString)
   updatePlayers()
   moveBoard()
   checkStarted()
+  getStats()
   self.setDescription('v ' .. VERSION .. '\nMade by Sionar')
 end
 

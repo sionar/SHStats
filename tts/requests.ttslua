@@ -1,2 +1,28 @@
-endpoint = 'https://shstats.herokuapp.com/'
+baseUrl = 'https://shstats.herokuapp.com/api/'
 
+function generateQuery()
+  local query = 'users?'
+  local i = 0
+  for k,v in pairs(gameState.sessionPlayers) do
+    query = query .. 'steam_id' .. i .. '=' .. v.id .. '&' .. 'steam_name' .. i .. '=' .. v.nickname .. '&'
+    i = i+1
+  end
+  return query
+end
+
+function getStats()
+  local query = generateQuery()
+  local endpoint = baseUrl .. query
+  WebRequest.get(endpoint, getStatsCb)
+end
+
+function getStatsCb(request)
+  if request.is_done then
+    if (request.response_code) == 500 then
+        broadcastToAll('Stats could not be fetched.', {1,0,0})
+        return
+    end
+    response = JSON.decode(request.text)
+    print(response)
+  end
+end

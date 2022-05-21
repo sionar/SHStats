@@ -1,4 +1,0 @@
-json.entities do
-
-
-end
