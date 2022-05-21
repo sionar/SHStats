@@ -1,0 +1,1104 @@
+--[[
+SH Scoreboard
+Made by Sionar
+--]]
+
+
+------------------Constants
+VERSION = '2.0.3'
+DEBUG = false
+COLOR_TABLE = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
+BUTT_W = 0
+BUTT_H = 0
+BUTT_B_COLOR = {0,0,0,1}
+COL_S = -1.5
+ROW_S = -1.6
+COL_W = 0.5
+ROW_W = 0.25
+COL = {COL_S + 0 * COL_W - 0.1, COL_S + 1 * COL_W, COL_S + 2 * COL_W, COL_S + 3 * COL_W, COL_S + 4 * COL_W, COL_S + 5 * COL_W, COL_S + 6 * COL_W}
+ROW = {ROW_S + 0 * COL_W, ROW_S + 1 * ROW_W, ROW_S + 2 * ROW_W, ROW_S + 3 * ROW_W, ROW_S + 4 * ROW_W, ROW_S + 5 * ROW_W, ROW_S + 6 * ROW_W, ROW_S + 7 * ROW_W, ROW_S + 8 * ROW_W, ROW_S + 9 * ROW_W, ROW_S + 10 * ROW_W}
+START_POS = {x = 100, y = 1.1, z = 8}
+
+
+------------------Variables
+stats = {}
+saveStorage = {}
+winStorage = {}
+name = {}
+gamesPlayed = {}
+libWR = {}
+fasWR = {}
+hitWR = {}
+fhWR = {}
+totWR = {}
+gwr = {}
+lrat = {}
+frat = {}
+namesDisp = {}
+gamesDisp = {}
+ratesDisp = {}
+recordCheck = false
+startTime = 0
+minGames = 10
+startRank = 1
+state = 0
+gameType = 'vanilla'
+gameSize = 0
+roles = Global.getTable('roles')
+sessionPlayers = {}
+
+
+------------------Events
+function onLoad(saveString)
+    if not (saveString == '') then
+        local save = JSON.decode(saveString)
+        sessionPlayers = save['sp'] or {}
+        gameType = save['gt'] or gameType
+    end
+
+    roles = Global.getTable('roles')
+    recordCheck = false
+    startTime = os.time()
+    updatePlayers()
+    moveBoard()
+    checkStarted()
+    self.setDescription('v ' .. VERSION .. '\nMade by Sionar')
+end
+
+function onSave()
+    local save = {}
+    save['sp'] = sessionPlayers
+    save['gt'] = gameType
+    local saveString = JSON.encode(save)
+    return saveString
+end
+
+function onChat(message, player)
+    local args = {} -- The arguments following a command
+    local command
+
+    for i in string.gmatch(message, "%S+") do
+        args[#args + 1] = i
+    end
+
+    if args[1] ~= nil then
+        command = string.lower(args[1])
+    end
+
+    if command == '!lu' then
+        if args[2] == nil then
+            player.broadcast('Please enter a name.', {1,0,0})
+            return false
+        else
+            lookupMenu()
+            findPlayerByName(args[2])
+        end
+        return false
+    elseif command == '!s1' then
+        refreshStart()
+        return false
+    elseif command == '!s2' then
+        miscMenu()
+        return false
+    elseif command == '!s3' then
+        overStart()
+        return false
+    elseif command == '!s4' then
+        libStart()
+        return false
+    elseif command == '!s5' then
+        fasStart()
+        return false
+    elseif command == '!rl' then
+        if player.admin then
+            recLFunc()
+        end
+        return false
+    elseif command == '!rf' then
+        if player.admin then
+            recFFunc()
+        end
+        return false
+    elseif command == '!rh' then
+        if player.admin then
+            recHFunc()
+        end
+        return false
+    elseif command == '!up' then
+        updatePlayers()
+        return false
+    end
+end
+
+function onPlayerConnect(player)
+    local query = "?"
+    if gameType == 'vanilla' then
+        query = query .. 'game_type=vanilla&'
+    else
+        query = query .. 'game_type=expansion&'
+    end
+    query = query .. "steam_id="..player.steam_id
+
+    WebRequest.get('https://shstats.teliot.dev/search.php'..query, function(req)
+        if req.is_done and not req.is_error then
+            local response = req.text
+            local responseJSON = JSON.decode(response)
+            for k,v in pairs(responseJSON) do
+                stats[k] = v
+            end
+        end
+    end)
+end
+
+function checkStarted()
+    Wait.time(checkStartedTimer, 5)
+end
+
+function checkStartedTimer()
+    local started = Global.getVar('started')
+    if started then
+        updatePlayers()
+    else
+        checkStarted()
+    end
+end
+
+function moveBoard()
+    local global_name = Global.getVar('MOD_NAME')
+    if global_name == 'Secret Hitler: CE' then
+        local tab = getAllObjects()
+        local foundTab = {}
+        for _, v in pairs(tab) do
+            if v.getName() == 'Secret Hitler Scoreboard Web' then
+                table.insert(foundTab,1,v)
+            end
+        end
+        self.setPositionSmooth({START_POS['x']  + (#foundTab-1) * 30, START_POS['y'], START_POS['z']})
+        self.setLock(true)
+    end
+end
+
+------------------Main Functions
+function nullFunc() end
+
+function refreshStart()
+    local lw, fw, hw, lg, fg, hg
+    for i = 1, 10 do
+        if Player[COLOR_TABLE[i]].seated == false then
+            gamesPlayed[i] = ""
+            libWR[i] = ""
+            fasWR[i] = ""
+            hitWR[i] = ""
+            fhWR[i] = ""
+            totWR[i] = ""
+        else
+            if stats[Player[COLOR_TABLE[i]].steam_id] ~= nil then
+                lw = stats[Player[COLOR_TABLE[i]].steam_id].liberal_wins
+                fw = stats[Player[COLOR_TABLE[i]].steam_id].fascist_wins
+                hw = stats[Player[COLOR_TABLE[i]].steam_id].hitler_wins
+                lg= stats[Player[COLOR_TABLE[i]].steam_id].liberal_count
+                fg= stats[Player[COLOR_TABLE[i]].steam_id].fascist_count
+                hg= stats[Player[COLOR_TABLE[i]].steam_id].hitler_count
+            else
+                lw, fw, hw, lg, fg, hg = 0,0,0,0,0,0
+            end
+
+            gamesPlayed[i] = lg + fg + hg
+            if gamesPlayed[i] == 0 then
+                libWR[i] = "0%"
+                fasWR[i] = "0%"
+                hitWR[i] = "0%"
+                fhWR[i] = "0%"
+                totWR[i] = "0%"
+            else
+                libWR[i] = round(lw/lg * 100) .. "%"
+                fasWR[i] = round(fw/fg * 100) .. "%"
+                hitWR[i] = round(hw/hg * 100) .. "%"
+                fhWR[i] = round((fw+hw)/(fg+hg) * 100) .. "%"
+                totWR[i] = round((fw+hw+lw)/(fg+hg+lg) * 100) .. "%"
+            end
+        end
+    end
+    mainMenu()
+end
+
+function updateStart(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        updatePlayers()
+    else
+        broadcastToColor("Only promoted players can update the seated players.", playerColor, {1,0,0})
+    end
+end
+
+function updatePlayers()
+    local entry = {}
+    local roles = {}
+    local started = false
+    sessionPlayers = {}
+    local global_name = Global.getVar('MOD_NAME')
+    if global_name == 'Secret Hitler: CE' then
+        roles = Global.getTable('roles')
+        started = Global.getVar('started')
+    end
+    local players = nil
+    if not started then
+        players = getSeatedPlayers()
+    else
+        players = Global.getTable('players')
+    end
+    if players ~= nil then
+        for k,v in pairs(players) do
+            entry = {id = Player[v].steam_id, role = roles[v], nickname = Player[v].steam_name}
+            table.insert(sessionPlayers,entry)
+        end
+    end
+    broadcastToAll("Seated players updated.", {0,0,1})
+    getStats()
+end
+
+function toggleGameType(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        if gameType == 'vanilla' then
+            gameType = 'expansion'
+            broadcastToAll('Game type has been set to Expansion.')
+        else
+            gameType = 'vanilla'
+            broadcastToAll('Game type has been set to Vanilla.')
+        end
+    end
+    getStats()
+end
+
+function changeGameSize(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        if gameSize == 0 then
+            gameSize = 5
+        else
+            gameSize = gameSize + 1
+        end
+        if gameSize == 11 then
+            gameSize = 0
+        end
+    end
+    getStats()
+end
+
+function recLButtonFunc(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        recLFunc()
+    else
+        broadcastToColor("Only promoted players can record the game.", playerColor, {1,0,0})
+    end
+end
+
+function recLFunc()
+    if checkValid() then
+        broadcastToAll("Liberal victory recorded.", {0,0,1})
+        recWin('liberal')
+        refreshStart()
+    end
+end
+
+function recHButtonFunc(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        recHFunc()
+    else
+        broadcastToColor("Only promoted players can record the game.", playerColor, {1,0,0})
+    end
+end
+
+function recHFunc()
+    if checkValid() then
+        broadcastToAll("Hitler victory recorded.", {1,0,0})
+        recWin('hitler')
+        refreshStart()
+    end
+end
+
+function recFButtonFunc(clickedObject, playerColor)
+    if Player[playerColor].admin then
+        recFFunc()
+    else
+        broadcastToColor("Only promoted players can record the game.", playerColor, {1,0,0})
+    end
+end
+
+function recFFunc()
+    if checkValid() then
+        broadcastToAll("Fascist victory recorded.", {1,0,0})
+        recWin('fascist')
+        refreshStart()
+    end
+end
+
+function recWin(winningTeam)
+    local lastFascistPlayed = Global.getVar('lastFascistPlayed')
+    local roles = Global.getTable('roles')
+    local payload = {}
+    payload.version = 2
+    payload.winner = winningTeam
+    payload.game_type = gameType
+    for i,v in ipairs(sessionPlayers) do
+        payload["p_nick"..i] = v.nickname
+        payload["p_id"..i] = tostring(v.id)
+        payload["p_role"..i] = v.role
+    end
+    WebRequest.post('https://shstats.teliot.dev/record.php', payload, function(req)
+        if req.is_done and not req.is_error then
+            getStats()
+        end
+    end)
+end
+
+function getStats()
+    local query = "?gamestats=yes&game_size=" .. gameSize .. '&'
+    if gameType == 'vanilla' then
+        query = query .. 'game_type=vanilla&'
+    else
+        query = query .. 'game_type=expansion&'
+    end
+    for i,v in ipairs(sessionPlayers) do
+        if v.id ~= nil then
+            query = query .. "steam_id"..i.."="..v.id.."&"
+        end
+    end
+
+    WebRequest.get('https://shstats.teliot.dev/search.php'..query, function(req)
+        if req.is_done and not req.is_error then
+            local response = req.text
+            local responseJSON = JSON.decode(response)
+            for k,v in pairs(responseJSON) do
+                stats[k] = v
+            end
+            refreshStart()
+        else
+            broadcastToAll('Error: Stats could not be retrieved.', {1,0,0})
+            refreshStart()
+        end
+    end)
+end
+
+function checkValid()
+    local started = Global.getVar('started')
+    local players = getSeatedPlayers()
+    local currTime = os.time()
+
+    if not started then
+        broadcastToAll("Error recording game: Game not started.", {1,0,0})
+        return false
+    elseif recordCheck then
+        broadcastToAll("Error recording game: Game already recorded for this session.", {1,0,0})
+        return false
+    elseif #sessionPlayers < 5 then
+        broadcastToAll("Error recording game: Not enough players seated", {1,0,0})
+        return false
+    elseif currTime - startTime < 30 then
+        broadcastToAll("Error recording game: Please wait a couple of minutes before submitting.", {1,0,0})
+        return false
+    else
+        recordCheck = true
+        return true
+    end
+end
+
+function overLeader()
+    -- local tab = self.getInputs()
+    -- if tab == nil then
+    --     minGames = 10
+    -- else
+    --     startRank = tonumber(tab[1].value)
+    --     minGames = tonumber(tab[2].value)
+    -- end
+    --
+    -- local db_copy = {}
+    -- local tempEntry = {}
+    -- for v in pairs(db) do
+    --     if db[v].fg + db[v].hg + db[v].lg >= minGames then
+    --         tempEntry = {}
+    --         tempEntry.sn = db[v].sn or db[v].name
+    --         tempEntry.fg = db[v].fg
+    --         tempEntry.hg = db[v].hg
+    --         tempEntry.lg = db[v].lg
+    --         tempEntry.fw = db[v].fw
+    --         tempEntry.hw = db[v].hw
+    --         tempEntry.lw = db[v].lw
+    --         table.insert(db_copy, tempEntry)
+    --     end
+    -- end
+    --
+    -- for v in pairs(db_copy) do
+    --     db_copy[v].wr = (db_copy[v].fw + db_copy[v].hw + db_copy[v].lw) / (db_copy[v].fg + db_copy[v].hg + db_copy[v].lg)
+    -- end
+    --
+    -- table.sort(db_copy, comp)
+    -- local endPoint = #db_copy
+    -- if startRank + 9 > endPoint then
+    --     startRank = endPoint - 9
+    -- end
+    -- if startRank < 1 then
+    --     startRank = 1
+    -- end
+    -- if #db_copy < 10 then
+    --     for i=1,#db_copy do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[startRank-1+i].fg + db_copy[startRank-1+i].hg + db_copy[startRank-1+i].lg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    --     for i=#db_copy+1,10 do
+    --         namesDisp[i] = ''
+    --         gamesDisp[i] = ''
+    --         ratesDisp[i] = ''
+    --     end
+    -- else
+    --     for i=1,10 do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[startRank-1+i].fg + db_copy[startRank-1+i].hg + db_copy[startRank-1+i].lg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    -- end
+    overMenu()
+end
+
+function libLeader()
+    -- local tab = self.getInputs()
+    -- if tab == nil then
+    --     minGames = 10
+    -- else
+    --     startRank = tonumber(tab[1].value)
+    --     minGames = tonumber(tab[2].value)
+    -- end
+    --
+    -- local db_copy = {}
+    -- local tempEntry = {}
+    -- for v in pairs(db) do
+    --     if tonumber(db[v].lg) >= minGames then
+    --         tempEntry = {}
+    --         tempEntry.sn = db[v].sn or db[v].name
+    --         tempEntry.lg = db[v].lg
+    --         tempEntry.lw = db[v].lw
+    --         table.insert(db_copy, tempEntry)
+    --     end
+    -- end
+    --
+    -- for v in pairs(db_copy) do
+    --     db_copy[v].wr = (db_copy[v].lw) / (db_copy[v].lg)
+    -- end
+    --
+    -- table.sort(db_copy, comp)
+    -- local endPoint = #db_copy
+    -- if startRank + 9 > endPoint then
+    --     startRank = endPoint - 9
+    -- end
+    -- if startRank < 1 then
+    --     startRank = 1
+    -- end
+    -- if #db_copy < 10 then
+    --     for i=1,#db_copy do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[startRank-1+i].lg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    --     for i=#db_copy+1,10 do
+    --         namesDisp[i] = ''
+    --         gamesDisp[i] = ''
+    --         ratesDisp[i] = ''
+    --     end
+    -- else
+    --     for i=1,10 do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[startRank-1+i].lg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    -- end
+    libMenu()
+end
+
+function fasLeader()
+    -- local tab = self.getInputs()
+    -- if tab == nil then
+    --     minGames = 10
+    -- else
+    --     startRank = tonumber(tab[1].value)
+    --     minGames = tonumber(tab[2].value)
+    -- end
+    --
+    -- local db_copy = {}
+    -- local tempEntry = {}
+    -- for v in pairs(db) do
+    --     if tonumber(db[v].fg + db[v].hg) >= minGames then
+    --         tempEntry = {}
+    --         tempEntry.sn = db[v].name or db[v].sn
+    --         tempEntry.fg = db[v].fg
+    --         tempEntry.hg = db[v].hg
+    --         tempEntry.fw = db[v].fw
+    --         tempEntry.hw = db[v].hw
+    --         table.insert(db_copy, tempEntry)
+    --     end
+    -- end
+    --
+    -- for v in pairs(db_copy) do
+    --     db_copy[v].wr = (db_copy[v].fw + db_copy[v].hw) / (db_copy[v].fg + db_copy[v].hg)
+    -- end
+    --
+    -- table.sort(db_copy, comp)
+    -- local endPoint = #db_copy
+    -- if startRank + 9 > endPoint then
+    --     startRank = endPoint - 9
+    -- end
+    -- if startRank < 1 then
+    --     startRank = 1
+    -- end
+    -- if #db_copy < 10 then
+    --     for i=1,#db_copy do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[i].fg + db_copy[i].hg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    --     for i=#db_copy+1,10 do
+    --         namesDisp[i] = ''
+    --         gamesDisp[i] = ''
+    --         ratesDisp[i] = ''
+    --     end
+    -- else
+    --     for i=1,10 do
+    --         namesDisp[i] = db_copy[startRank-1+i].sn
+    --         gamesDisp[i] = db_copy[startRank-1+i].fg + db_copy[startRank-1+i].hg
+    --         ratesDisp[i] = round(db_copy[startRank-1+i].wr * 100) .. "%"
+    --     end
+    -- end
+    fasMenu()
+end
+
+function round(n)
+    return n % 1 >= 0.5 and math.ceil(n) or math.floor(n)
+end
+
+function debug_print(string)
+    if DEBUG then
+        print(string)
+    end
+end
+
+
+------------------User Interface
+function mainMenu()
+    self.clearButtons()
+    self.clearInputs()
+    state = 0
+    local buttonParam = {}
+    buttonParam = {click_function = 'nullFunc', label = "Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[1],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 320, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Games\nPlayed", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[2],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Fas\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[3],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Hitler\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[4],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "F+H\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[5],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Lib\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[6],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Total\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[7],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'updateStart', label = "Update\nPlayers", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {-1.6,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = '!up', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'miscMenu', label = "Misc\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {-0.96,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s2 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    if gameType == 'vanilla' then
+        buttonParam = {click_function = 'toggleGameType', label = "Game Type:\nVanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
+            position = {-0.32,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
+    else
+        buttonParam = {click_function = 'toggleGameType', label = "Game Type:\nExpansion", color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+            position = {-0.32,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
+    end
+    self.createButton(buttonParam)
+
+    local gameSizeText = 'Any'
+    if gameSize ~= 0 then
+        gameSizeText = gameSize
+    end
+
+    buttonParam = {click_function = 'changeGameSize', label = "Num Players:\n"..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {0.32,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'recLButtonFunc', label = "Record\nLib Win", color = {0,0,1,1}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {0.96,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Record a liberal win (!rl)', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'recFButtonFunc', label = "Record\nFas Win", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1.6,0.2,1.3}, rotation = {0,0,0}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a fascist win (!rf)', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'recHButtonFunc', label = "Record\nHit Win", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1.6,0.2,1.5}, rotation = {0,0,0}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a Hitler win - Hitler was elected as chancellor in Hitler territory. (!rh)', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+
+    local name_size
+    for i = 1,10 do
+        if Player[COLOR_TABLE[i]].steam_name ~= nil and string.len(Player[COLOR_TABLE[i]].steam_name) > 10 then
+            name_size = 120
+        else
+            name_size = 200
+        end
+
+        local buttonParam = {click_function = 'nullFunc', label = Player[COLOR_TABLE[i]].steam_name, color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[1],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = name_size, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = gamesPlayed[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[2],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = fasWR[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[3],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = hitWR[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[4],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = fhWR[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[5],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = libWR[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[6],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = totWR[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[7],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+    end
+end
+
+function miscMenu()
+    self.clearButtons()
+    self.clearInputs()
+    state = 1
+    local name_size
+
+    namesDisp = {}
+    gamesDisp = {}
+    ratesDisp = {}
+    local lWins = stats.games.liberal_wins
+    local fWins = stats.games.fascist_wins
+    local fWinRate = fWins / (fWins + lWins)
+    local totalGames = stats.games.total_games
+    local gamblerAttempts, gamblerWins
+
+    local buttonParam = {click_function = 'nullFunc', label = "Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[1],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 320, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    if gameType == 'expansion' then
+        buttonParam = {click_function = 'nullFunc', label = "Gamble\nAttempts", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+            position = {COL[4],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        buttonParam = {click_function = 'nullFunc', label = "Gamble\nSuccess", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+            position = {COL[5],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+    end
+
+    buttonParam = {click_function = 'nullFunc', label = "Total Games\nRecorded", color = BUTT_B_COLOR, font_color = stringColorToRGB('Green'), function_owner = self,
+        position = {COL[7],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = totalGames, color = BUTT_B_COLOR, font_color = stringColorToRGB('Green'), function_owner = self,
+        position = {COL[7],0.2,ROW[2]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 400, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = "Fascist\nWinrate", color = BUTT_B_COLOR, font_color = stringColorToRGB('Green'), function_owner = self,
+        position = {COL[7],0.2,ROW[4]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    buttonParam = {click_function = 'nullFunc', label = round(fWinRate*100).."%", color = BUTT_B_COLOR, font_color = stringColorToRGB('Green'), function_owner = self,
+        position = {COL[7],0.2,ROW[5]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 400, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    for i = 1,10 do
+        if Player[COLOR_TABLE[i]].seated then
+            if Player[COLOR_TABLE[i]].steam_name ~= nil and string.len(Player[COLOR_TABLE[i]].steam_name) > 10 then
+                name_size = 120
+            else
+                name_size = 200
+            end
+            buttonParam = {click_function = 'nullFunc', label = Player[COLOR_TABLE[i]].steam_name, color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+                position = {COL[1],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = name_size, scale = {0.25,0.25,0.25}}
+            self.createButton(buttonParam)
+
+            if gameType == 'expansion' then
+                gamblerAttempts = stats[Player[COLOR_TABLE[i]].steam_id].gambler_attempts
+                gamblerWR = round(stats[Player[COLOR_TABLE[i]].steam_id].gambler_wins / gamblerAttempts * 100) .. "%"
+
+                buttonParam = {click_function = 'nullFunc', label = gamblerAttempts, color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+                    position = {COL[4],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+                self.createButton(buttonParam)
+
+                buttonParam = {click_function = 'nullFunc', label = gamblerWR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+                    position = {COL[5],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+                self.createButton(buttonParam)
+            end
+        end
+    end
+
+
+    createMiscButtons()
+end
+
+function createMiscButtons()
+    local buttonParam = {click_function = 'refreshStart', label = "Main\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {-1.6,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s1 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'miscMenu', label = "Misc\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {-0.96,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s2 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'overStart', label = "Overall\nLeader\nBoard", color = stringColorToRGB('Purple'), font_color = stringColorToRGB('White'), function_owner = self,
+        position = {-0.32,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s3 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'libStart', label = "Liberal\nLeader\nBoard", color = {0,0,1,1}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {0.32,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s4 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'fasStart', label = "Fascist\nLeader\nBoard", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {0.96,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !s5 in chat to open up this page', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'lookupMenu', label = "Lookup\nPlayer", color = stringColorToRGB('Green'), font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1.6,0.2,1.4}, rotation = {0,0,0}, width = 1000, height = 800, font_size = 200, tooltip = 'Type !lu [FF0000]player [FFFFFF]in chat to\nlook up stats as a spectator.', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+end
+
+function overStart()
+    state = 2
+    self.clearButtons()
+    self.clearInputs()
+    overLeader()
+end
+
+function libStart()
+    state = 3
+    self.clearButtons()
+    self.clearInputs()
+    libLeader()
+end
+
+function fasStart()
+    state = 4
+    self.clearButtons()
+    self.clearInputs()
+    fasLeader()
+end
+
+function overMenu()
+    self.clearButtons()
+    self.clearInputs()
+
+    local buttonParam = {click_function = 'nullFunc', label = "Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[2],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Overall\nGames Played", color = BUTT_B_COLOR, font_color = stringColorToRGB('Purple'), function_owner = self,
+        position = {COL[3]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Overall\nWin Rate", color = BUTT_B_COLOR, font_color = stringColorToRGB('Purple'), function_owner = self,
+        position = {COL[4]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    createLeaderValueButtons()
+    createMiscButtons()
+    createMinButtons()
+end
+
+function libMenu()
+    self.clearButtons()
+    self.clearInputs()
+
+    local buttonParam = {click_function = 'nullFunc', label = "Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[2],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Liberal\nGames Played", color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {COL[3]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Liberal\nWin Rate", color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {COL[4]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    createLeaderValueButtons()
+    createMiscButtons()
+    createMinButtons()
+end
+
+function fasMenu()
+    self.clearButtons()
+    self.clearInputs()
+
+    local buttonParam = {click_function = 'nullFunc', label = "Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {COL[2],0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Fascist\nGames Played", color = BUTT_B_COLOR, font_color = stringColorToRGB('Red'), function_owner = self,
+        position = {COL[3]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Fascist\nWin Rate", color = BUTT_B_COLOR, font_color = stringColorToRGB('Red'), function_owner = self,
+        position = {COL[4]+0.2,0.2,ROW[1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    createLeaderValueButtons()
+    createMiscButtons()
+    createMinButtons()
+end
+
+function createLeaderValueButtons()
+    for i = 1,10 do
+        local buttonParam = {click_function = 'nullFunc', label = startRank -1 + i..".", color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[1],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = namesDisp[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[2],0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 160, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = gamesDisp[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[3]+0.2,0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+
+        local buttonParam = {click_function = 'nullFunc', label = ratesDisp[i], color = BUTT_B_COLOR, font_color = stringColorToRGB(COLOR_TABLE[i]), function_owner = self,
+            position = {COL[4]+0.2,0.2,ROW[i+1]}, rotation = {0,0,0}, width = BUTT_W, height = BUTT_H, font_size = 200, scale = {0.25,0.25,0.25}}
+        self.createButton(buttonParam)
+    end
+end
+
+function createMinButtons()
+    local buttonParam = {click_function = 'nullFunc', label = "Starting\nRank", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1.2,0.2,-1}, rotation = {0,0,0}, width = 0, height = 0, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local inputParam = {input_function = 'rankUpdate', color = stringColorToRGB('White'), function_owner = self, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {1.2,0.2,-0.75}, rotation = {0,0,0}, width = 1600, height = 450, font_size = 400, value = startRank, alignment = 3, validation = 2, tab = 1, scale = {0.25,0.25,0.25}}
+    self.createInput(inputParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Minimum\n# Games", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1.2,0.2,0}, rotation = {0,0,0}, width = 0, height = 0, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local inputParam = {input_function = 'minUpdate', color = stringColorToRGB('White'), function_owner = self, font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {1.2,0.2,0.25}, rotation = {0,0,0}, width = 1600, height = 450, font_size = 400, value = minGames, alignment = 3, validation = 2, tab = 1, scale = {0.25,0.25,0.25}}
+    self.createInput(inputParam)
+end
+
+function rankUpdate(obj, player_clicker_color, input_value, selected)
+    if not selected then
+        startRank = input_value
+        if     state == 2 then      overLeader()
+        elseif state == 3 then      libLeader()
+        elseif state == 4 then      fasLeader()
+        end
+    end
+end
+
+function minUpdate(obj, player_clicker_color, input_value, selected)
+    if not selected then
+        if     state == 2 then      overLeader()
+        elseif state == 3 then      libLeader()
+        elseif state == 4 then      fasLeader()
+        end
+    end
+end
+
+function lookupMenu()
+    self.clearButtons()
+    self.clearInputs()
+
+    local buttonParam = {click_function = 'nullFunc', label = "Steam Name", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {-1,0.2,-1.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local inputParam = {input_function = 'nullFunc', color = stringColorToRGB('White'), function_owner = self, font_color = stringColorToRGB('Black'),
+        position = {-1,0.2,-1.2}, rotation = {0,0,0}, width = 2400, height = 600, font_size = 240, alignment = 2, validation = 1, tab = 1, scale = {0.25,0.25,0.25}}
+    self.createInput(inputParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = "Steam ID", color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {1,0.2,-1.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 200, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local inputParam = {input_function = 'nullFunc', color = stringColorToRGB('White'), function_owner = self, font_color = stringColorToRGB('Black'),
+        position = {1,0.2,-1.2}, rotation = {0,0,0}, width = 2400, height = 600, font_size = 240, alignment = 2, validation = 2, tab = 1, scale = {0.25,0.25,0.25}}
+    self.createInput(inputParam)
+
+    local buttonParam = {click_function = 'lookupStart', label = "Lookup", stringColorToRGB('White'), font_color = stringColorToRGB('Black'), function_owner = self,
+        position = {0,0.2,-1.2}, rotation = {0,0,0}, width = 1200, height = 800, font_size = 320, tooltip = 'Use !lu player in chat to\nlook up stats as a spectator.', scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    createMiscButtons()
+end
+
+function lookupStart()
+    local tab = self.getInputs()
+    local steam_name = tab[1].value
+    local steam_id = tab[2].value
+
+    lookupMenu()
+
+
+    if steam_name ~= '' then
+        findPlayerByName(steam_name)
+    elseif steam_id ~= '' then
+        findPlayerById(steam_id)
+    end
+end
+
+function findPlayerByName(name)
+    local query = "?"
+    local id
+    if gameType == 'vanilla' then
+        query = query .. 'game_type=vanilla&'
+    else
+        query = query .. 'game_type=expansion&'
+    end
+    query = query .. "nickname="..name
+
+    WebRequest.get('https://shstats.teliot.dev/search.php'..query, function(req)
+        if req.is_done and not req.is_error then
+            local response = req.text
+            local responseJSON = JSON.decode(response)
+            for k,v in pairs(responseJSON) do
+                stats[k] = v
+                id = k
+            end
+            displayPlayerStats(id)
+        end
+    end)
+end
+
+function findPlayerById(id)
+    local query = "?"
+    if gameType == 'vanilla' then
+        query = query .. 'game_type=vanilla&'
+    else
+        query = query .. 'game_type=expansion&'
+    end
+    query = query .. "steam_id="..id
+
+    WebRequest.get('https://shstats.teliot.dev/search.php'..query, function(req)
+        if req.is_done and not req.is_error then
+            local response = req.text
+            local responseJSON = JSON.decode(response)
+            for k,v in pairs(responseJSON) do
+                stats[k] = v
+            end
+            displayPlayerStats(id)
+        end
+    end)
+end
+
+function displayPlayerStats(id)
+    local nn, gc, gw, lc, fc, hc, lw, fw, hw, lgr, owr, lwr, fwr, fhwr, hwr = 'Player not found',0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    if stats[id] ~= nil then
+        nn = stats[id].nickname
+        gc = stats[id].games_count
+        gw = stats[id].total_wins
+        lc = stats[id].liberal_count
+        fc = stats[id].fascist_count
+        hc = stats[id].hitler_count
+        lw = stats[id].liberal_wins
+        fw = stats[id].fascist_wins
+        hw = stats[id].hitler_wins
+
+        lgr = round(lc/gc * 100) .. "%"
+        owr = round(gw/gc * 100) .. "%"
+        lwr = round(lw/lc * 100) .. "%"
+        fwr = round(fw/fc * 100) .. "%"
+        fhwr = round((fw+hw)/(fc+hc) * 100) .. "%"
+        hwr = round(hw/hc * 100) .. "%"
+    end
+
+    local buttonParam = {click_function = 'nullFunc', label = nn, color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {0,0.2,-0.8}, rotation = {0,0,0}, width = 0, height = 0, font_size = 400, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Games Played: ' .. gc, color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {-0.8,0.2,-0.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Games Won: ' .. gw, color = BUTT_B_COLOR, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {-0.8,0.2,-0.3}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Overall Win Rate: ' .. owr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Purple'), function_owner = self,
+        position = {-0.8,0.2,-0.1}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = '% of Games as Liberal: ' .. lgr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {-0.8,0.2,0.1}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Liberal Games Played: ' .. lc, color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {-0.8,0.2,0.3}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Liberal Games Won: ' .. lw, color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {-0.8,0.2,0.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Liberal Win Rate: ' .. lwr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Blue'), function_owner = self,
+        position = {-0.8,0.2,0.7}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Fascist Games Played: ' .. fc, color = BUTT_B_COLOR, font_color = stringColorToRGB('Yellow'), function_owner = self,
+        position = {0.8,0.2,-0.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Fascist Games Won: ' .. fw, color = BUTT_B_COLOR, font_color = stringColorToRGB('Yellow'), function_owner = self,
+        position = {0.8,0.2,-0.3}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Fascist Win Rate: ' .. fwr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Yellow'), function_owner = self,
+        position = {0.8,0.2,-0.1}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Fas+Hit Win Rate: ' .. fhwr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Orange'), function_owner = self,
+        position = {0.8,0.2,0.1}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Hitler Games Played: ' .. hc, color = BUTT_B_COLOR, font_color = stringColorToRGB('Red'), function_owner = self,
+        position = {0.8,0.2,0.3}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Hitler Games Won: ' .. hw, color = BUTT_B_COLOR, font_color = stringColorToRGB('Red'), function_owner = self,
+        position = {0.8,0.2,0.5}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+
+    local buttonParam = {click_function = 'nullFunc', label = 'Hitler Win Rate: ' .. hwr, color = BUTT_B_COLOR, font_color = stringColorToRGB('Red'), function_owner = self,
+        position = {0.8,0.2,0.7}, rotation = {0,0,0}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+end
