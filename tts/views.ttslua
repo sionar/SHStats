@@ -1,0 +1,5 @@
+------------------Views
+function renderView()
+  self.clearInputs()
+  self.clearButtons()
+end

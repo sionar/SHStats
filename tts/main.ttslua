@@ -1,11 +1,14 @@
 ------------------Constants
-VERSION = '3.0.0'
+VERSION = '0.0.1'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
 START_POS = {x = 100, y = 1.1, z = 8}
 
 
 ------------------Variables
+displaySettings = {
+  view = 'main'
+}
 gameState = {
   gameType = 'vanilla',
   isStarted = false,
@@ -15,24 +18,24 @@ gameState = {
   winningTeam = '',
   winType = '',
 }
+leaderboard = {}
 stats = {}
 statsSettings = {
   numPlayers = 0,
-  gameType = 'any',
+  gameType = 'vanilla',
   offset = 0,
 }
-leaderboard = {}
+
 
 
 ------------------Events
 function onLoad(saveString)
   if not (saveString == '') then
-      local save = JSON.decode(saveString)
-      gameState = save['gs'] or gameState
-      stats = save['st'] or stats
-      statsSettings = save['ss'] or statsSettings
+    local save = JSON.decode(saveString)
+    gameState = save['gs'] or gameState
+    stats = save['st'] or stats
+    statsSettings = save['ss'] or statsSettings
   end
-
   gameState.isRecorded = false
   gameState.startTime = os.time()
   updatePlayers()
@@ -58,7 +61,6 @@ function updatePlayers()
   for k,v in pairs(gameState) do
     nextGameState[k] = gameState[k]
   end
-
   local entry = {}
   local roles = {}
   local sessionPlayers = {}
@@ -75,7 +77,7 @@ function updatePlayers()
   end
   if players ~= nil then
     for k,v in pairs(players) do
-      entry = {steam_id = Player[v].steam_id, role = roles[v], steam_name = Player[v].steam_name}
+      entry = {steam_id = Player[v].steam_id, role = roles[v] or '', steam_name = Player[v].steam_name}
       table.insert(sessionPlayers,entry)
     end
   end
@@ -107,20 +109,32 @@ end
 function checkStartedTimer()
   local isStarted = Global.getVar('started')
   if isStarted then
+    gameState.isStarted = true
     updatePlayers()
   else
     checkStarted()
   end
 end
 
-function getPermission(player)
-  local hasPermission = player.admin or player.promoted
-  if not hasPermission then
-    player.print('You do not have permission to do this action.', {1,0,0})
+------------------Main Functions
+function toggleGameType()
+  if gameState.gameType == 'vanilla' then
+    gameState.gameType = 'expansion'
+    statsSettings.gameType = 'expansion'
+  else
+    gameState.gameType = 'vanilla'
+    statsSettings.gameType = 'vanilla'
   end
-  return hasPermission
+  renderView()
 end
 
-
-------------------Main Functions
-function nullFunc() end
+function toggleNumPlayers()
+  if statsSettings.numPlayers < 10 then
+    statsSettings.numPlayers = statsSettings.numPlayers + 1
+  elseif statsSettings.numPlayers == 10 then
+    statsSettings.numPlayers = 0
+  elseif statsSettings.numPlayers == 0 then
+    statsSettings.numPlayers = 5
+  end
+  renderView()
+end

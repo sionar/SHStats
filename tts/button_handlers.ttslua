@@ -1,0 +1,67 @@
+------------------Button Handlers
+function nullFunc() end
+
+function getPermission(player)
+  local hasPermission = player.admin or player.promoted
+  if not hasPermission then
+    player.print('You do not have permission to do this action.', {1,0,0})
+  end
+  return hasPermission
+end
+
+function handleUpdatePlayers(clickedButton, playerColor)
+  local player = Player[playerColor]
+  local permission = getPermission(player)
+  if not permission then
+    return
+  end
+  updatePlayers()
+end
+
+function handleChangeViewToMain(clickedButton, playerColor)
+  displaySettings.view = 'main'
+  renderView()
+end
+
+function handleChangeGameType(clickedButton, playerColor)
+  local player = Player[playerColor]
+  local permission = getPermission(player)
+  if not permission then
+    return
+  end
+  toggleGameType()
+end
+
+function handleChangeNumPlayers(clickedButton, playerColor)
+  local player = Player[playerColor]
+  local permission = getPermission(player)
+  if not permission then
+    return
+  end
+  toggleNumPlayers()
+end
+
+function handleChangeViewToMisc(clickedButton, playerColor)
+  displaySettings.view = 'misc'
+  renderView()
+end
+
+function handleChangeViewToLeaderAll(clickedButton, playerColor)
+  displaySettings.view = 'leaderAll'
+  renderView()
+end
+
+function handleChangeViewToLeaderLib(clickedButton, playerColor)
+  displaySettings.view = 'leaderLib'
+  renderView()
+end
+
+function handleChangeViewToLeaderFas(clickedButton, playerColor)
+  displaySettings.view = 'leaderFas'
+  renderView()
+end
+
+function handleChangeViewToLookup(clickedButton, playerColor)
+  displaySettings.view = 'lookup'
+  renderView()
+end

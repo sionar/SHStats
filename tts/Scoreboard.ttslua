@@ -1,2 +1,4 @@
 #include \main.ttslua
 #include \requests.ttslua
+#include \button_handlers.ttslua
+#include \views.ttslua

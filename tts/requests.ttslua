@@ -4,7 +4,7 @@ function generateQuery()
   local query = 'get_stats?'
   local i = 0
   for k,v in pairs(gameState.sessionPlayers) do
-    query = query .. 'steam_id' .. i .. '=' .. v.id .. '&' .. 'steam_name' .. i .. '=' .. v.nickname .. '&'
+    query = query .. 'steam_id' .. i .. '=' .. v.steam_id .. '&' .. 'steam_name' .. i .. '=' .. v.steam_name .. '&'
     i = i+1
   end
 
