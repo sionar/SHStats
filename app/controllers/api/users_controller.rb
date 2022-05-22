@@ -50,16 +50,7 @@ module Api
       user_obj
     end
 
-    def total_wr
-      players = players.join(:game).where(game_params)
-      return 0 if players.count = 0
 
-      (players.where(win: true).count / players.count)
-    end
-
-    def self.sorted_by_total_wr
-      User.all.sort_by(&:total_wr)
-    end
 
     def liberal_wr
       players = players.join(:game).where(game_params).where(role: 'liberal')
