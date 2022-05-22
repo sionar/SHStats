@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddColumnsToUser < ActiveRecord::Migration[7.0]
   def change
     add_column :users, :liberal_wins, :integer, default: 0

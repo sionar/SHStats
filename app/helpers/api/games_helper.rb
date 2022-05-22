@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 module Api
-  module UsersHelper
+  module GamesHelper
   end
 end

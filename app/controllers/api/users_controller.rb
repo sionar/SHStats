@@ -1,35 +1,72 @@
-class Api::UsersController < ApplicationController
-  def show
-    @users = []
-    ints = get_param_ints
-    ints.each do |i|
-      steam_id = params[int_to_sym(i, 'steam_id')]
-      steam_name = params[int_to_sym(i, 'steam_name')]
+# frozen_string_literal: true
 
-      user = User.find_by(steam_id: steam_id)
-      if user
-        user.update!(steam_name: steam_name)
-        @users.push(user)
-      else
-        user = User.create!(steam_id: steam_id, steam_name: steam_name)
-        @users.push(user)
+module Api
+  class UsersController < ApplicationController
+    def index
+      case params[:sort_by]
+      when 'total_wr'
+        @users = User.sorted_by_total_wr(game_params)
+      when 'liberal_wr'
+        @users = User.sorted_by_lib_wr(game_params)
+      when 'fascist_wr'
+        @users = User.sorted_by_fas_wr(game_params)
+      when 'hitler_wr'
+        @users = User.sorted_by_hit_wr(game_params)
       end
+      @users = @users.map do |user|
+        get_stats(user)
+      end
+
+      render :index, status: 200
     end
 
-    render :show, status: 200
-  end
-
-  def get_param_ints
-    ints = []
-    10.times do |i|
-      if params[int_to_sym(i, 'steam_id')] && params[int_to_sym(i, 'steam_name')]
-        ints.push(i)
+    def show
+      @users = []
+      ints = param_ints
+      ints.each do |i|
+        user = create_or_update_user(i)
+        @users.push(get_stats(user))
       end
+      render :show, status: 200
     end
-    ints
-  end
 
-  def int_to_sym(int, base)
-    return (base + int.to_s).to_sym
+    def game_params
+      p = {}
+      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != 0
+      p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
+      p
+    end
+
+    def get_stats(user)
+      user_obj = {}
+      players = Player.joins(:user, :game).where(user:).where(game_params)
+      user_obj[:steam_id] = user.steam_id
+      user_obj[:steam_name] = user.steam_name
+      user_obj[:total_games] = players.count
+      user_obj[:total_wins] = players.where(win: true).count
+      user_obj[:liberal_games] = players.where(role: 'liberal').count
+      user_obj[:liberal_wins] = players.where(role: 'liberal', win: true).count
+      user_obj[:fascist_games] = players.where(role: 'fascist').count
+      user_obj[:fascist_wins] = players.where(role: 'fascist', win: true).count
+      user_obj[:hitler_games] = players.where(role: 'hitler').count
+      user_obj[:hitler_wins] = players.where(role: 'hitler', win: true).count
+      user_obj[:gamble_attempts] = user.gamble_attempts
+      user_obj[:gamble_successes] = user.gamble_successes
+      user_obj
+    end
+
+    def liberal_wr
+      players = players.join(:game).where(game_params).where(role: 'liberal')
+      return 0 if players.count = 0
+
+      (players.where(win: true).count / players.count)
+    end
+
+    def fascist_wr
+      players = players.join(:game).where(game_params).where(role: 'fascist')
+      return 0 if players.count = 0
+
+      (players.where(win: true).count / players.count)
+    end
   end
 end
