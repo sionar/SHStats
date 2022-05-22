@@ -12,6 +12,10 @@ module Api
         @users = User.all.sort_by(&:fascist_wr)
       end
 
+      @users = @users.map do |user|
+        get_stats(user)
+      end
+      
       render :index, status: 200
     end
 
