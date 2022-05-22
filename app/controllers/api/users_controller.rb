@@ -13,7 +13,7 @@ module Api
       when 'hitler_wr'
         @users = User.sorted_by_hit_wr(game_params)
       end
-
+      @users = @users.limit(10).offset(params[:offset] || 0)
       @users = @users.map do |user|
         get_stats(user)
       end
