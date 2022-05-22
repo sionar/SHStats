@@ -7,9 +7,11 @@ module Api
       when 'total_wr'
         @users = User.sorted_by_total_wr(game_params)
       when 'liberal_wr'
-        @users = User.all.sort_by(&:liberal_wr)
+        @users = User.sorted_by_lib_wr(game_params)
       when 'fascist_wr'
-        @users = User.all.sort_by(&:fascist_wr)
+        @users = User.sorted_by_fas_wr(game_params)
+      when 'hitler_wr'
+        @users = User.sorted_by_hit_wr(game_params)
       end
 
       @users = @users.map do |user|
