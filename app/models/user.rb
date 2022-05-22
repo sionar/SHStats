@@ -6,7 +6,7 @@ class User < ApplicationRecord
   has_many :players
   has_many :games, through: :players
 
-  def total_wr(game_params)
+  def total_wr
     players = self.players.where(@@game_params)
     return 0 if players.count.zero?
 
