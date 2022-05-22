@@ -12,15 +12,16 @@ gameState = {
   isRecorded = false,
   sessionPlayers = {},
   startTime = 0,
+  winningTeam = '',
+  winType = '',
 }
 stats = {}
 statsSettings = {
   numPlayers = 0,
   gameType = 'any',
-  offset= 0,
-  sortField = 'total',
-  sortDirection = 'asc',
+  offset = 0,
 }
+leaderboard = {}
 
 
 ------------------Events
@@ -74,7 +75,7 @@ function updatePlayers()
   end
   if players ~= nil then
     for k,v in pairs(players) do
-      entry = {id = Player[v].steam_id, role = roles[v], nickname = Player[v].steam_name}
+      entry = {steam_id = Player[v].steam_id, role = roles[v], steam_name = Player[v].steam_name}
       table.insert(sessionPlayers,entry)
     end
   end

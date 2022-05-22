@@ -1,12 +1,13 @@
 baseUrl = 'https://shstats.herokuapp.com/api/'
 
 function generateQuery()
-  local query = 'users?'
+  local query = 'get_stats?'
   local i = 0
   for k,v in pairs(gameState.sessionPlayers) do
     query = query .. 'steam_id' .. i .. '=' .. v.id .. '&' .. 'steam_name' .. i .. '=' .. v.nickname .. '&'
     i = i+1
   end
+
   return query
 end
 
@@ -23,6 +24,59 @@ function getStatsCb(request)
         return
     end
     response = JSON.decode(request.text)
-    print(response)
+    local users = response.users
+    for k,v in pairs(users) do
+        stats[k] = v
+    end
+    log(stats)
   end
+end
+
+function getLeaderboard()
+    local query = 'users?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+    local endpoint = baseUrl .. query
+    WebRequest.get(endpoint, getLeaderboardCb)
+end
+
+function getLeaderboardCb(request)
+    if request.is_done then
+      if (request.response_code) == 500 then
+          broadcastToAll('Stats could not be fetched.', {1,0,0})
+          return
+      end
+      response = JSON.decode(request.text)
+      leaderboard = response
+      log(leaderboard)
+    end
+end
+
+function postGame()
+    local endpoint = baseUrl .. 'games'
+    local form = {
+        game_type = gameState.gameType,
+        num_players = #gameState.sessionPlayers,
+        winning_team = gameState.winningTeam,
+        win_type = gameState.winType
+    }
+    for i = 1, #gameState.sessionPlayers do
+        form['steam_id'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_id)
+        form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
+        form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
+    end
+    WebRequest.post(endpoint, form, postGameCb)
+end
+
+function postGameCb(request)
+    if request.is_done then
+      if (request.response_code) == 500 then
+          broadcastToAll('Stats could not be recorded.', {1,0,0})
+          return
+      end
+      response = JSON.decode(request.text)
+      local users = response.users
+      for k,v in pairs(users) do
+          stats[k] = v
+      end
+      log(stats)
+    end
 end

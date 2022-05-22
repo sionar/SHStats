@@ -1,0 +1,76 @@
+endpoint = 'https://shstats.herokuapp.com/api/games'
+winning_team = {'liberal', 'fascist'}
+win_type = {'policy', 'hitler'}
+game_type = {'vanilla', 'expansion'}
+users = {
+    {steam_id = 1, steam_name = 'player1'},
+    {steam_id = 2, steam_name = 'player2'},
+    {steam_id = 3, steam_name = 'player3'},
+    {steam_id = 4, steam_name = 'player4'},
+    {steam_id = 5, steam_name = 'player5'},
+    {steam_id = 6, steam_name = 'player6'},
+    {steam_id = 7, steam_name = 'player7'},
+    {steam_id = 8, steam_name = 'player8'},
+    {steam_id = 9, steam_name = 'player9'},
+    {steam_id = 10, steam_name = 'player10'}
+}
+
+function onLoad()
+    self.createButton({click_function = 'post1', function_owner = self, position = {0,0.2,-1}, label='Upload 1 game', width = 800, height = 400})
+    self.createButton({click_function = 'post10', function_owner = self, position = {0,0.2,0}, label='Upload 10 games', width = 800, height = 400})
+    self.createButton({click_function = 'post100', function_owner = self, position = {0,0.2,1}, label='Upload 100 games', width = 800, height = 400})
+end
+
+function postGame()
+    local winningTeam = winning_team[math.random(1,2)]
+    local winType = win_type[math.random(1,2)]
+    local gameType = game_type[math.random(1,2)]
+    local numPlayers = math.random(5, 10)
+    local numLiberals = math.floor(numPlayers / 2) + 1
+    local numFascists = numPlayers - numLiberals - 1
+    local roles = {}
+
+    users = shuffle(users)
+    table.insert(roles, 'hitler')
+    for i = 1, numLiberals do
+        table.insert(roles, 'liberal')
+    end
+    for i = 1, numFascists do
+        table.insert(roles, 'fascist')
+    end
+    roles = shuffle(roles)
+
+    form = {
+        game_type = gameType,
+        num_players = tostring(numPlayers),
+        winning_team = winningTeam,
+        win_type = winType
+    }
+    for i = 1, numPlayers do
+        form['steam_id'..(i-1)] = tostring(users[i].steam_id)
+        form['steam_name'..(i-1)] = tostring(users[i].steam_name)
+        form['role'..(i-1)] = roles[i]
+    end
+    WebRequest.post(endpoint, form)
+end
+
+function post1()
+    postGame()
+end
+
+function post10()
+    Wait.time(postGame, 0.1, 10)
+end
+
+function post100()
+    Wait.time(postGame, 0.1, 100)
+end
+
+
+function shuffle(tbl)
+  for i = #tbl, 2, -1 do
+    local j = math.random(i)
+    tbl[i], tbl[j] = tbl[j], tbl[i]
+  end
+  return tbl
+end
