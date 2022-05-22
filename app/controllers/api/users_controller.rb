@@ -15,7 +15,7 @@ module Api
       @users = @users.map do |user|
         get_stats(user)
       end
-      
+
       render :index, status: 200
     end
 
@@ -53,8 +53,6 @@ module Api
       user_obj[:gamble_successes] = user.gamble_successes
       user_obj
     end
-
-
 
     def liberal_wr
       players = players.join(:game).where(game_params).where(role: 'liberal')

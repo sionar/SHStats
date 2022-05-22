@@ -8,9 +8,9 @@ class User < ApplicationRecord
 
   def total_wr
     players = self.players
-    return 0 if players.count == 0
+    return 0 if players.count.zero?
 
-    players.where(win: true).count / players.count
+    players.where(win: true).count / players.count.to_f
   end
 
   def self.sorted_by_total_wr
