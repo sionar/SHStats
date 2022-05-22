@@ -7,7 +7,6 @@ function generateQuery()
     query = query .. 'steam_id' .. i .. '=' .. v.steam_id .. '&' .. 'steam_name' .. i .. '=' .. v.steam_name .. '&'
     i = i+1
   end
-
   return query
 end
 
@@ -20,63 +19,89 @@ end
 function getStatsCb(request)
   if request.is_done then
     if (request.response_code) == 500 then
-        broadcastToAll('Stats could not be fetched.', {1,0,0})
-        return
+      broadcastToAll('Stats could not be fetched.', {1,0,0})
+      return
     end
     response = JSON.decode(request.text)
     local users = response.users
     for k,v in pairs(users) do
-        stats[k] = v
+      stats[k] = v
     end
     log(stats)
+    renderView()
   end
 end
 
 function getLeaderboard()
-    local query = 'users?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
-    local endpoint = baseUrl .. query
-    WebRequest.get(endpoint, getLeaderboardCb)
+  local query = 'users?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+  local endpoint = baseUrl .. query
+  WebRequest.get(endpoint, getLeaderboardCb)
 end
 
 function getLeaderboardCb(request)
-    if request.is_done then
-      if (request.response_code) == 500 then
-          broadcastToAll('Stats could not be fetched.', {1,0,0})
-          return
-      end
-      response = JSON.decode(request.text)
-      leaderboard = response
-      log(leaderboard)
+  if request.is_done then
+    if (request.response_code) == 500 then
+      broadcastToAll('Stats could not be fetched.', {1,0,0})
+      return
     end
+    response = JSON.decode(request.text)
+    leaderboard = response
+    log(leaderboard)
+    renderView()
+  end
+end
+
+function lookupPlayer()
+  local query = 'get_stats?lookup=true&steam_id0=' .. statsSettings.lookupId .. '&steam_name0=*'
+  local endpoint = baseUrl .. query
+  WebRequest.get(endpoint, lookupCb)
+end
+
+function lookupCb(request)
+  if request.is_done then
+    if (request.response_code) == 500 then
+      broadcastToAll('Stats could not be fetched.', {1,0,0})
+      return
+    end
+    response = JSON.decode(request.text)
+    local users = response.users
+    for k,v in pairs(users) do
+      statsSettings.lookupStats = v
+    end
+    statsSettings.lookupFound = true
+    renderView()
+  end
 end
 
 function postGame()
-    local endpoint = baseUrl .. 'games'
-    local form = {
-        game_type = gameState.gameType,
-        num_players = #gameState.sessionPlayers,
-        winning_team = gameState.winningTeam,
-        win_type = gameState.winType
-    }
-    for i = 1, #gameState.sessionPlayers do
-        form['steam_id'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_id)
-        form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
-        form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
-    end
-    WebRequest.post(endpoint, form, postGameCb)
+  local endpoint = baseUrl .. 'games'
+  local form = {
+    game_type = gameState.gameType,
+    num_players = #gameState.sessionPlayers,
+    winning_team = gameState.winningTeam,
+    win_type = gameState.winType
+  }
+  for i = 1, #gameState.sessionPlayers do
+    form['steam_id'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_id)
+    form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
+    form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
+  end
+  WebRequest.post(endpoint, form, postGameCb)
 end
 
 function postGameCb(request)
-    if request.is_done then
-      if (request.response_code) == 500 then
-          broadcastToAll('Stats could not be recorded.', {1,0,0})
-          return
-      end
-      response = JSON.decode(request.text)
-      local users = response.users
-      for k,v in pairs(users) do
-          stats[k] = v
-      end
-      log(stats)
+  if request.is_done then
+    if (request.response_code) == 500 then
+      broadcastToAll('Stats could not be recorded.', {1,0,0})
+      gameState.isRecorded = false
+      return
     end
+    response = JSON.decode(request.text)
+    local users = response.users
+    for k,v in pairs(users) do
+      stats[k] = v
+    end
+    log(stats)
+    renderView()
+  end
 end

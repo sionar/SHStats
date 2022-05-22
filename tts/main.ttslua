@@ -24,8 +24,10 @@ statsSettings = {
   numPlayers = 0,
   gameType = 'vanilla',
   offset = 0,
+  lookupFound = false,
+  lookupId = 0,
+  lookupStats = {}
 }
-
 
 
 ------------------Events
@@ -116,6 +118,7 @@ function checkStartedTimer()
   end
 end
 
+
 ------------------Main Functions
 function toggleGameType()
   if gameState.gameType == 'vanilla' then
@@ -125,7 +128,7 @@ function toggleGameType()
     gameState.gameType = 'vanilla'
     statsSettings.gameType = 'vanilla'
   end
-  renderView()
+  getStats()
 end
 
 function toggleNumPlayers()
@@ -136,5 +139,33 @@ function toggleNumPlayers()
   elseif statsSettings.numPlayers == 0 then
     statsSettings.numPlayers = 5
   end
+  getStats()
+end
+
+function isRecordable()
+  local currTime = os.time()
+  if not gameState.isStarted then
+    broadcastToAll("Error recording game: Game not started.", {1,0,0})
+    return false
+  elseif gameState.isRecorded then
+    broadcastToAll("Error recording game: Game already recorded for this session.", {1,0,0})
+    return false
+  elseif #gameState.sessionPlayers < 5 then
+    broadcastToAll("Error recording game: Not enough players seated", {1,0,0})
+    return false
+  elseif currTime - gameState.startTime < 30 then
+    broadcastToAll("Error recording game: You are trying to record a game too soon.", {1,0,0})
+    return false
+  else
+    return true
+  end
+end
+
+function recordGame()
+  if not isRecordable() then
+    return
+  end
+  gameState.isRecorded = true
+  postGame()
   renderView()
 end
