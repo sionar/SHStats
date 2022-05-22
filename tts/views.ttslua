@@ -2,4 +2,102 @@
 function renderView()
   self.clearInputs()
   self.clearButtons()
+
+  renderButtonPanel()
+end
+
+function renderButtonPanel()
+  if displaySettings.view == 'main' then
+    renderButtonPanelMain()
+  else
+    renderButtonPanelOther()
+  end
+end
+
+function renderButtonPanelMain()
+  local buttonParam = {}
+  if gameState.gameType == 'vanilla' then
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nVanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
+          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
+  else
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nExpansion", color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
+  end
+  self.createButton(buttonParam)
+
+  local gameSizeText = 'Any'
+  if statsSettings.numPlayers ~= 0 then
+      gameSizeText = statsSettings.numPlayers
+  end
+  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players:\n"..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-0.96,0.2,1.6}, width = 1000, height = 800, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleUpdatePlayers', label = "Update\nPlayers", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+      position = {-0.32,0.2,1.6}, width = 1000, height = 800, font_size = 200, scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToMisc', label = "Misc\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+      position = {0.32,0.2,1.6}, width = 1000, height = 800, font_size = 200, scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleRecordLibWinPolicy', label = "Record Lib\nPolicy Win", color = {0,0,1,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {0.96,0.2,1.5}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a liberal win by policy.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleRecordLibWinHitler', label = "Record Lib\nHitler Win", color = {0,0,1,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {0.96,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a liberal win by shooting Hitler.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleRecordFasWinPolicy', label = "Record Fas\nPolicy Win", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {1.6,0.2,1.5}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a fascist win by policy.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleRecordFasWinHitler', label = "Record Fas\nHitler Win", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {1.6,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = 'Record a Hitler win - Hitler was elected as chancellor in Hitler territory. (!rh)', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+end
+
+function renderButtonPanelOther()
+  local buttonParam = {}
+  if gameState.gameType == 'vanilla' then
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nVanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
+          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
+  else
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nExpansion", color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
+  end
+  self.createButton(buttonParam)
+
+  local gameSizeText = 'Any'
+  if statsSettings.numPlayers ~= 0 then
+      gameSizeText = statsSettings.numPlayers
+  end
+  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players:\n"..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-0.96,0.2,1.6}, width = 1000, height = 800, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToMain', label = "Main\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+      position = {-0.32,0.2,1.6}, width = 1000, height = 800, font_size = 200, scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToMisc', label = "Misc\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+      position = {0.32,0.2,1.6}, width = 1000, height = 800, font_size = 200, scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToLeaderAll', label = "Overall\nLeaderboard", color = {0.5,0,0.75,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {0.96,0.2,1.5}, width = 1000, height = 400, font_size = 100, tooltip = 'Show the overall leaderboard.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToLeaderLib', label = "Liberal\nLeadeerboard", color = {0,0,1,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {0.96,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = 'Show the liberal leaderboard.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToLeaderFas', label = "Fascist\nLeaderboard", color = {1,0,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {1.6,0.2,1.5}, width = 1000, height = 400, font_size = 100, tooltip = 'Show the fascist leaderboard.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeViewToLookup', label = "Lookup\nPlayer", color = {0,1,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {1.6,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = "Lookup a player's stats", scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
 end

@@ -15,10 +15,6 @@ function handleUpdatePlayers(clickedButton, playerColor)
   updatePlayers()
 end
 
-function handleChangeViewToMain(clickedButton, playerColor)
-  displaySettings.view = 'main'
-  renderView()
-end
 
 function handleChangeGameType(clickedButton, playerColor)
   if not hasPermission(playerColor) then return end
@@ -56,6 +52,11 @@ function handleRecordFasWinHitler(clickedButton, playerColor)
   gameState.winningTeam = 'fascist'
   gameState.winType = 'hitler'
   recordGame()
+end
+
+function handleChangeViewToMain(clickedButton, playerColor)
+  displaySettings.view = 'main'
+  renderView()
 end
 
 function handleChangeViewToMisc(clickedButton, playerColor)

@@ -132,7 +132,7 @@ function toggleGameType()
 end
 
 function toggleNumPlayers()
-  if statsSettings.numPlayers < 10 then
+  if statsSettings.numPlayers < 10 and statsSettings.numPlayers >= 5 then
     statsSettings.numPlayers = statsSettings.numPlayers + 1
   elseif statsSettings.numPlayers == 10 then
     statsSettings.numPlayers = 0
