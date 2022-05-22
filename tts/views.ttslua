@@ -97,7 +97,7 @@ function renderButtonPanelOther()
       position = {1.6,0.2,1.5}, width = 1000, height = 400, font_size = 100, tooltip = 'Show the fascist leaderboard.', scale = {0.25,0.25,0.25}}
   self.createButton(buttonParam)
 
-  buttonParam = {click_function = 'handleChangeViewToLookup', label = "Lookup\nPlayer", color = {0,1,0,1}, font_color = stringColorToRGB('White'), function_owner = self,
+  buttonParam = {click_function = 'handleChangeViewToLookup', label = "Lookup\nPlayer", color = {0,1,0.25,1}, font_color = stringColorToRGB('White'), function_owner = self,
       position = {1.6,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = "Lookup a player's stats", scale = {0.25,0.25,0.25}}
   self.createButton(buttonParam)
 end
