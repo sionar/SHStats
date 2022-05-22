@@ -5,7 +5,7 @@ module Api
     def index
       case params[:sort_by]
       when 'total_wr'
-        @users = User.all.sort_by(&:total_wr)
+        @users = User.sorted_by_total_wr
       when 'liberal_wr'
         @users = User.all.sort_by(&:liberal_wr)
       when 'fascist_wr'
@@ -55,6 +55,10 @@ module Api
       return 0 if players.count = 0
 
       (players.where(win: true).count / players.count)
+    end
+
+    def self.sorted_by_total_wr
+      User.all.sort_by(&:total_wr)
     end
 
     def liberal_wr
