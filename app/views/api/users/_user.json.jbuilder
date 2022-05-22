@@ -7,7 +7,7 @@ json.set! user[:steam_id] do
   json.total_wins user[:total_wins]
   json.liberal_games user[:liberal_games]
   json.liberal_wins user[:liberal_wins]
-  json.fascist_games user[:liberal_games]
+  json.fascist_games user[:fascist_games]
   json.fascist_wins user[:fascist_wins]
   json.hitler_games user[:hitler_games]
   json.hitler_wins user[:hitler_wins]
