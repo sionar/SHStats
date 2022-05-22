@@ -5,7 +5,7 @@ module Api
     def index
       case params[:sort_by]
       when 'total_wr'
-        @users = User.sorted_by_total_wr
+        @users = User.sorted_by_total_wr(game_params)
       when 'liberal_wr'
         @users = User.all.sort_by(&:liberal_wr)
       when 'fascist_wr'
