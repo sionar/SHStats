@@ -17,11 +17,11 @@ module Api
 
     def index
       games = Game.where(game_params)
-      @stats = {}
-      @stats[:any] = game_stats(games, :any)
+      @stats = []
+      @stats.push(game_stats(games, :any))
       (5..10).each do |i|
         games = Game.where(game_params).where(num_players: i)
-        @stats[i] = game_stats(games, i)
+        @stats.push(game_stats(games, i))
       end
       render :index, status: 200
     end
