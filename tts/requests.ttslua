@@ -32,6 +32,24 @@ function getStatsCb(request)
   end
 end
 
+function getOverallStats()
+  local query = 'games?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+  local endpoint = baseUrl .. query
+  WebRequest.get(endpoint, getOverallStatsCb)
+end
+
+function getOverallStatsCb(request)
+  if request.is_done then
+    if (request.response_code) == 500 then
+      broadcastToAll('Stats could not be fetched.', {1,0,0})
+      return
+    end
+    response = JSON.decode(request.text)
+    overallStats = response.stats
+    renderView()
+  end
+end
+
 function getLeaderboard()
   local query = 'users?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
   local endpoint = baseUrl .. query

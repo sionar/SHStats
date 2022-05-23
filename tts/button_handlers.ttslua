@@ -61,7 +61,7 @@ end
 
 function handleChangeViewToMisc(clickedButton, playerColor)
   displaySettings.view = 'misc'
-  renderView()
+  getOverallStats()
 end
 
 function handleChangeViewToLeaderAll(clickedButton, playerColor)
