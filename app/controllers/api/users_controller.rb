@@ -32,7 +32,7 @@ module Api
 
     def game_params
       p = {}
-      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != 0
+      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != "0"
       p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
       p
     end
