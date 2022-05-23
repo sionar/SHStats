@@ -3,8 +3,12 @@
 module Api
   class GamesController < ApplicationController
     def create
+      submitter = User.find_by(steam_id: params[:submitter_id])
+      if not submitter
+        submitter = User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
+      end
       game = Game.create!(game_type: params[:game_type], num_players: params[:num_players],
-                          winning_team: params[:winning_team], win_type: params[:win_type])
+                          winning_team: params[:winning_team], win_type: params[:win_type], submitter_id: submitter.id)
       ints = param_ints
       ints.each do |i|
         user = create_or_update_user(i)

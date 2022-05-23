@@ -5,6 +5,7 @@ class User < ApplicationRecord
 
   has_many :players
   has_many :games, through: :players
+  has_many :submitted_games, class_name: 'Game', foreign_key: 'submitter_id'
 
   def total_wr
     players = self.players.joins(:game).where(@@game_params)
