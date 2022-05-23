@@ -97,7 +97,7 @@ function moveBoard()
         numFound = numFound + 1
       end
     end
-    local xOffset = numFound * 30
+    local xOffset = (numFound - 1) * 30
     self.setPositionSmooth({START_POS['x'] + xOffset, START_POS['y'], START_POS['z']})
     self.setLock(true)
   end

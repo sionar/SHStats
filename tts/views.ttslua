@@ -137,18 +137,18 @@ function renderMainTableRow(index, color)
   local yStart = -1
   local yInc = 0.2
   local buttonParam = {}
-  local playerStats = stats[Player['White'].steam_id]
+  local playerStats = stats[Player[color].steam_id]
   if not playerStats then
     return
   end
   local labels = {
     playerStats.steam_name,
     playerStats.total_games,
-    playerStats.total_wins/playerStats.total_games,
-    playerStats.liberal_wins/playerStats.liberal_games,
-    (playerStats.fascist_wins + playerStats.hitler_wins)/(playerStats.fascist_games + playerStats.hitler_games),
-    playerStats.fascist_wins/playerStats.fascist_games,
-    playerStats.hitler_wins/playerStats.hitler_games,
+    math.floor(playerStats.total_wins/playerStats.total_games * 100) .. '%',
+    math.floor(playerStats.liberal_wins/playerStats.liberal_games * 100) .. '%',
+    math.floor((playerStats.fascist_wins + playerStats.hitler_wins)/(playerStats.fascist_games + playerStats.hitler_games) * 100) .. '%',
+    math.floor(playerStats.fascist_wins/playerStats.fascist_games * 100) .. '%',
+    math.floor(playerStats.hitler_wins/playerStats.hitler_games * 100) .. '%',
   }
   local buttonParam = {}
   for i,v in ipairs(labels) do

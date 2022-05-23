@@ -1,10 +1,13 @@
 baseUrl = 'https://shstats.herokuapp.com/api/'
 
 function generateQuery()
-  local query = 'get_stats?'
+  local query = 'get_stats?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'
   local i = 0
+  print(logString(gameState.sessionPlayers))
   for k,v in pairs(gameState.sessionPlayers) do
-    query = query .. 'steam_id' .. i .. '=' .. v.steam_id .. '&' .. 'steam_name' .. i .. '=' .. v.steam_name .. '&'
+    if v.steam_id and v.steam_name then
+      query = query .. 'steam_id' .. i .. '=' .. v.steam_id .. '&' .. 'steam_name' .. i .. '=' .. v.steam_name .. '&'
+    end
     i = i+1
   end
   return query
@@ -23,17 +26,13 @@ function getStatsCb(request)
       return
     end
     response = JSON.decode(request.text)
-    local users = response.users
-    for k,v in pairs(users) do
-      stats[k] = v
-    end
-    log(stats)
+    stats = response.users
     renderView()
   end
 end
 
 function getOverallStats()
-  local query = 'games?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+  local query = 'games?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, getOverallStatsCb)
 end
@@ -107,6 +106,7 @@ function postGame(playerColor)
     form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
     form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
   end
+  print(logString(form))
   WebRequest.post(endpoint, form, postGameCb)
 end
 
@@ -117,12 +117,6 @@ function postGameCb(request)
       gameState.isRecorded = false
       return
     end
-    response = JSON.decode(request.text)
-    local users = response.users
-    for k,v in pairs(users) do
-      stats[k] = v
-    end
-    log(stats)
-    renderView()
+    getStats()
   end
 end
