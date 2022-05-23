@@ -30,28 +30,28 @@ function handleRecordLibWinPolicy(clickedButton, playerColor)
   if not hasPermission(playerColor) then return end
   gameState.winningTeam = 'liberal'
   gameState.winType = 'policy'
-  recordGame()
+  recordGame(playerColor)
 end
 
 function handleRecordLibWinHitler(clickedButton, playerColor)
   if not hasPermission(playerColor) then return end
   gameState.winningTeam = 'liberal'
   gameState.winType = 'hitler'
-  recordGame()
+  recordGame(playerColor)
 end
 
 function handleRecordFasWinPolicy(clickedButton, playerColor)
   if not hasPermission(playerColor) then return end
   gameState.winningTeam = 'fascist'
   gameState.winType = 'policy'
-  recordGame()
+  recordGame(playerColor)
 end
 
 function handleRecordFasWinHitler(clickedButton, playerColor)
   if not hasPermission(playerColor) then return end
   gameState.winningTeam = 'fascist'
   gameState.winType = 'hitler'
-  recordGame()
+  recordGame(playerColor)
 end
 
 function handleChangeViewToMain(clickedButton, playerColor)

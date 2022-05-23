@@ -161,11 +161,11 @@ function isRecordable()
   end
 end
 
-function recordGame()
+function recordGame(playerColor)
   if not isRecordable() then
     return
   end
   gameState.isRecorded = true
-  postGame()
+  postGame(playerColor)
   renderView()
 end

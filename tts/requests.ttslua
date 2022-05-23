@@ -73,13 +73,16 @@ function lookupCb(request)
   end
 end
 
-function postGame()
+function postGame(playerColor)
+  local player = Player[playerColor]
   local endpoint = baseUrl .. 'games'
   local form = {
     game_type = gameState.gameType,
     num_players = #gameState.sessionPlayers,
+    submitter_id = player.steam_id,
+    submitter_name = player.steam_name,
     winning_team = gameState.winningTeam,
-    win_type = gameState.winType
+    win_type = gameState.winType,
   }
   for i = 1, #gameState.sessionPlayers do
     form['steam_id'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_id)
