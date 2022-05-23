@@ -27,12 +27,13 @@ module Api
         user = params[:lookup] == 'true' ? User.find_by(steam_id: params[:steam_id0]) : create_or_update_user(i)
         @users.push(get_stats(user))
       end
+      debugger
       render :show, status: 200
     end
 
     def game_params
       p = {}
-      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != 0
+      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != "0"
       p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
       p
     end
