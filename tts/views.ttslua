@@ -1,8 +1,13 @@
 ------------------Views
 function renderView()
+  viewFunctions = {
+    main = renderMainView,
+    misc = renderMiscView
+  }
+
   self.clearInputs()
   self.clearButtons()
-
+  viewFunctions[displaySettings.view]()
   renderButtonPanel()
 end
 
@@ -100,4 +105,59 @@ function renderButtonPanelOther()
   buttonParam = {click_function = 'handleChangeViewToLookup', label = "Lookup\nPlayer", color = {0,1,0.25,1}, font_color = stringColorToRGB('White'), function_owner = self,
       position = {1.6,0.2,1.7}, width = 1000, height = 400, font_size = 100, tooltip = "Lookup a player's stats", scale = {0.25,0.25,0.25}}
   self.createButton(buttonParam)
+end
+
+function renderMainView()
+  renderMainTableHeader()
+  renderMainTableRows()
+end
+
+function renderMainTableHeader()
+  local labels = {'Name', 'Games Played', 'Total\nWinrate', 'Lib\nWinrate', 'Fas+H\nWinrate', 'Fas\nWinrate', 'Hitler\nWinrate'}
+  local xStart = -1.5
+  local xInc = 0.5
+  local yStart = -1.3
+  local buttonParam = {}
+  for i,v in ipairs(labels) do
+    buttonParam = {click_function = 'nullFunc', label = labels[i], color = {0,0,0}, font_color = stringColorToRGB('White'), function_owner = self,
+        position = {xStart + (i-1) * xInc,0.2,yStart}, width = 0, height = 0, font_size = 140, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+  end
+end
+
+function renderMainTableRows()
+  for i,color in ipairs(COLORS) do
+    renderMainTableRow(i, color)
+  end
+end
+
+function renderMainTableRow(index, color)
+  local xStart = -1.5
+  local xInc = 0.5
+  local yStart = -1
+  local yInc = 0.2
+  local buttonParam = {}
+  local playerStats = stats[Player['White'].steam_id]
+  if not playerStats then
+    return
+  end
+  local labels = {
+    playerStats.steam_name,
+    playerStats.total_games,
+    playerStats.total_wins/playerStats.total_games,
+    playerStats.liberal_wins/playerStats.liberal_games,
+    (playerStats.fascist_wins + playerStats.hitler_wins)/(playerStats.fascist_games + playerStats.hitler_games),
+    playerStats.fascist_wins/playerStats.fascist_games,
+    playerStats.hitler_wins/playerStats.hitler_games,
+  }
+  local buttonParam = {}
+  for i,v in ipairs(labels) do
+    buttonParam = {click_function = 'nullFunc', label = labels[i], color = {0,0,0}, font_color = stringColorToRGB(color), function_owner = self,
+        position = {xStart + (i-1) * xInc,0.2, yStart + (index-1) * yInc}, width = 0, height = 0, font_size = 140, scale = {0.25,0.25,0.25}}
+    self.createButton(buttonParam)
+  end
+end
+
+function renderMiscView()
+  print('bye')
 end

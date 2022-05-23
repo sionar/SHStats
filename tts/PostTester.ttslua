@@ -21,7 +21,8 @@ function onLoad()
     self.createButton({click_function = 'post100', function_owner = self, position = {0,0.2,1}, label='Upload 100 games', width = 800, height = 400})
 end
 
-function postGame()
+function postGame(playerColor)
+    local player = Player[playerColor]
     local winningTeam = winning_team[math.random(1,2)]
     local winType = win_type[math.random(1,2)]
     local gameType = game_type[math.random(1,2)]
@@ -44,7 +45,9 @@ function postGame()
         game_type = gameType,
         num_players = tostring(numPlayers),
         winning_team = winningTeam,
-        win_type = winType
+        win_type = winType,
+        submitter_id = player.steam_id,
+        submitter_name = player.steam_name
     }
     for i = 1, numPlayers do
         form['steam_id'..(i-1)] = tostring(users[i].steam_id)
@@ -54,16 +57,16 @@ function postGame()
     WebRequest.post(endpoint, form)
 end
 
-function post1()
-    postGame()
+function post1(clickedObject, playerColor)
+    postGame(playerColor)
 end
 
-function post10()
-    Wait.time(postGame, 0.1, 10)
+function post10(clickedObject, playerColor)
+    Wait.time(function() postGame(playerColor) end, 0.1, 10)
 end
 
-function post100()
-    Wait.time(postGame, 0.1, 100)
+function post100(clickedObject, playerColor)
+    Wait.time(function() postGame(playerColor) end, 0.1, 100)
 end
 
 

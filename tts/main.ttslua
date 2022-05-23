@@ -19,6 +19,7 @@ gameState = {
   winType = '',
 }
 leaderboard = {}
+overallStats = {}
 stats = {}
 statsSettings = {
   numPlayers = 0,
@@ -35,7 +36,6 @@ function onLoad(saveString)
   if not (saveString == '') then
     local save = JSON.decode(saveString)
     gameState = save['gs'] or gameState
-    stats = save['st'] or stats
     statsSettings = save['ss'] or statsSettings
   end
   gameState.isRecorded = false
@@ -50,7 +50,6 @@ end
 function onSave()
   local save = {}
   save['gs'] = gameState
-  save['st'] = stats
   save['ss'] = statsSettings
   local saveString = JSON.encode(save)
   return saveString
@@ -161,11 +160,11 @@ function isRecordable()
   end
 end
 
-function recordGame()
+function recordGame(playerColor)
   if not isRecordable() then
     return
   end
   gameState.isRecorded = true
-  postGame()
+  postGame(playerColor)
   renderView()
 end
