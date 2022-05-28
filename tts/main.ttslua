@@ -54,6 +54,13 @@ function onSave()
 end
 
 
+function onPlayerChangeColor(playerColor)
+  if playerColor != "Black" and playerColor != "Grey" and not gameState.isStarted then
+    updatePlayers()
+    renderView()
+  end
+end
+
 ------------------onLoad Functions
 function updatePlayers()
   local nextGameState = {}

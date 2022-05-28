@@ -7,7 +7,6 @@ function renderView()
     leaderLib = renderLeaderboardView,
     leaderFas = renderLeaderboardView
   }
-
   self.clearInputs()
   self.clearButtons()
   viewFunctions[statsSettings.view]()
