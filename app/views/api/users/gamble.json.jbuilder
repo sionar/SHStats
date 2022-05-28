@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
-json.games do
+json.users do
 end

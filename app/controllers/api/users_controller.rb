@@ -55,6 +55,16 @@ module Api
       render :search, status: 200
     end
 
+    def gamble
+      user = User.find_by(steam_id: params[:steam_id])
+      render json: { errors: ['no user found'] }, status: 404 and return unless user
+      gamble_successes = user.gamble_successes
+      gamble_attempts = user.gamble_attempts
+      gamble_successes += 1 if params[:gamble_result] == 'win'
+      user.update!(gamble_successes: gamble_successes, gamble_attempts: gamble_attempts + 1)
+      render :gamble, status: 200
+    end
+
     def game_params
       p = {}
       p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
