@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  searchkick
+
   validates :steam_id, :steam_name, presence: true
 
   has_many :players
@@ -53,5 +55,11 @@ class User < ApplicationRecord
   def self.sorted_by_hit_wr(game_params)
     @@game_params = game_params
     User.all.sort_by(&:hit_wr).reverse!
+  end
+
+  def search_data 
+    { steam_name: steam_name
+
+    }
   end
 end

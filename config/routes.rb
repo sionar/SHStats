@@ -7,5 +7,6 @@ Rails.application.routes.draw do
   end
 
   get 'api/get_stats', to: 'api/users#show', defaults: { format: :json }
+  get 'api/search', to: 'api/users#search', defaults: { format: :json }
   root 'static_pages#root'
 end
