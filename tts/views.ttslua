@@ -5,12 +5,21 @@ function renderView()
     misc = renderMiscView,
     leaderAll = renderLeaderboardView,
     leaderLib = renderLeaderboardView,
-    leaderFas = renderLeaderboardView
+    leaderFas = renderLeaderboardView,
+    lookup = renderLookupView
   }
   self.clearInputs()
   self.clearButtons()
   viewFunctions[statsSettings.view]()
+  renderHeader()
   renderButtonPanel()
+end
+
+function renderHeader()
+  local labelColors = {main = "Yellow", misc = "Yellow", lookup = "Yellow", leaderAll = "Purple", leaderLib = "Blue", leaderFas = "Red"}
+  local titleText = {main = "Secret Hitler Statistics", misc = "Overall Statistics", lookup = "Lookup Player", leaderAll = "Overall Leaderboard", leaderLib = "Liberal Leaderboard", leaderFas = "Fascist Leaderboard"}
+  self.createButton({click_function = 'nullFunc', label = titleText[statsSettings.view], color = {0,0,0}, font_color = stringColorToRGB(labelColors[statsSettings.view]), function_owner = self,
+      position = {0, 0.2, -1.7}, width = 0, height = 0, font_size = 180, scale = {0.25,0.25,0.25}})
 end
 
 function renderButtonPanel()
@@ -122,7 +131,7 @@ function renderMainTableHeader()
   local labels = {'Name', 'Games Played', 'Total\nWinrate', 'Lib\nWinrate', 'Fas+H\nWinrate', 'Fas\nWinrate', 'Hitler\nWinrate'}
   local xStart = -1.5
   local xInc = 0.5
-  local yStart = -1.3
+  local yStart = -1.5
   local buttonParam = {}
   for i,v in ipairs(labels) do
     buttonParam = {click_function = 'nullFunc', label = labels[i], color = {0,0,0}, font_color = stringColorToRGB('White'), function_owner = self,
@@ -140,7 +149,7 @@ end
 function renderMainTableRow(index, color)
   local xStart = -1.5
   local xInc = 0.5
-  local yStart = -1
+  local yStart = -1.2
   local yInc = 0.2
   local buttonParam = {}
   local playerStats = stats[Player[color].steam_id]
@@ -167,7 +176,7 @@ end
 function renderMiscView()
   local i = 0
   local zInc = 0.4
-  local zStart = -1.4
+  local zStart = -1.5
   for k,group in pairs(overallStats) do
     renderMiscRow(group, zStart + zInc * i)
     i = i+1
@@ -199,18 +208,23 @@ function renderMiscRow(group, zVal)
 end
 
 function renderLeaderboardView()
-  local labelColors = {leaderAll = "Purple", leaderLib = "Blue", leaderFas = "Red"}
-  local titleText = {leaderAll = "Overall Leaderboard", leaderLib = "Liberal Leaderboard", leaderFas = "Fascist Leaderboard"}
+  local filteredLeaderboard = {}
+  for i,v in ipairs(leaderboard) do
+    for id,stats in pairs(v) do
+      if stats.total_games >= statsSettings.minGames then
+        table.insert(filteredLeaderboard, v)
+      end
+    end
+  end
+
   local xInc = 1.2
   local xVal = {-1 * xInc, 0, xInc}
   local zStart = -1.2
   local zInc = 0.2
   local tableLabels = {"Player", "Total Games", "Winrate"}
   local startIdx = statsSettings.offset
-  local endIdx = startIdx + 9 <= #leaderboard and startIdx + 9 or #leaderboard
+  local endIdx = startIdx + 9 <= #filteredLeaderboard and startIdx + 9 or #filteredLeaderboard
 
-  self.createButton({click_function = 'nullFunc', label = titleText[statsSettings.view], color = {0,0,0}, font_color = stringColorToRGB(labelColors[statsSettings.view]), function_owner = self,
-      position = {0, 0.2, -1.7}, width = 0, height = 0, font_size = 180, scale = {0.25,0.25,0.25}})
   for i=1,3 do
     self.createButton({click_function = 'nullFunc', label = tableLabels[i], color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
         position = {xVal[i], 0.2, -1.5}, width = 0, height = 0, font_size = 180, scale = {0.25,0.25,0.25}})
@@ -218,12 +232,12 @@ function renderLeaderboardView()
 
 
   for idx=startIdx, endIdx do
-    renderLeaderboardRow(idx, xVal, zStart + (idx-startIdx) * zInc)
+    renderLeaderboardRow(filteredLeaderboard, idx, xVal, zStart + (idx-startIdx) * zInc)
   end
-  renderLeaderboardOffsetButtons()
+  renderLeaderboardButtons()
 end
 
-function renderLeaderboardRow(idx, xVal, zVal)
+function renderLeaderboardRow(leaderboard, idx, xVal, zVal)
   for k,v in pairs(leaderboard[idx]) do
     local key = k
     local stats = v
@@ -249,19 +263,73 @@ function renderLeaderboardRow(idx, xVal, zVal)
   end
 end
 
-function renderLeaderboardOffsetButtons()
-  self.createButton({click_function = 'nullFunc', label = "Offset", color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
+function renderLeaderboardButtons()
+  self.createButton({click_function = 'nullFunc', label = "Min Games", color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
+      position = {0.9, 0.2, 0.9}, width = 0, height = 0, font_size = 160, scale = {0.25,0.25,0.25}})
+  self.createInput({ input_function = 'handleChangeMinGamesValue', function_owner = self, label = statsSettings.offset,
+    alignment = 3, position = {0.9, 0.2, 1.05}, scale = {0.25,0.25,0.25}, width = 800, height = 300, font_size = 250, value = statsSettings.minGames, validation = 2, tab = 1,
+    })
+
+  self.createButton({click_function = 'nullFunc', label = "Starting Rank", color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
       position = {1.5, 0.2, 0.9}, width = 0, height = 0, font_size = 160, scale = {0.25,0.25,0.25}})
   self.createInput({ input_function = 'handleChangeOffsetValue', function_owner = self, label = statsSettings.offset,
     alignment = 3, position = {1.5, 0.2, 1.05}, scale = {0.25,0.25,0.25}, width = 800, height = 300, font_size = 250, value = statsSettings.offset, validation = 2, tab = 1,
     })
 end
 
-function handleChangeOffsetValue(obj, playerColor, inputValue, isSelected)
-  if not isSelected then
-    if tonumber(inputValue) > 0 then
-      statsSettings.offset = inputValue
-      renderView()
+function renderLookupView()
+  renderLookupButtons()
+  renderLookupTable()
+  renderButtonPanelOther()
+end
+
+function renderLookupButtons()
+  self.createInput({ input_function = 'handleChangeLookupName', function_owner = self, label = 'Steam Name', value = statsSettings.lookupName,
+    alignment = 3, position = {-1, 0.2, -1.4}, scale = {0.25,0.25,0.25}, width = 2400, height = 300, font_size = 250, tab = 2,
+  })
+  self.createInput({ input_function = 'handleChangeLookupId', function_owner = self, label = 'Steam Id', value = statsSettings.lookupId,
+    alignment = 3, position = {1, 0.2, -1.4}, scale = {0.25,0.25,0.25}, width = 2400, height = 300, font_size = 250, validation = 2, tab = 2,
+  })
+
+  self.createButton({click_function = 'handleLookup', label = "Lookup", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
+      position = {0,0.2,-1.4}, width = 1000, height = 400, font_size = 100, tooltip = "Lookup a player's stats by their steam id or steam name", scale = {0.25,0.25,0.25}})
+end
+
+function renderLookupTable()
+  if statsSettings.lookupFound then
+    local labelsLeft = {}
+    table.insert(labelsLeft, "Games Played: " .. statsSettings.lookupStats.total_games)
+    table.insert(labelsLeft, "Games Won: " .. statsSettings.lookupStats.total_wins)
+    table.insert(labelsLeft, "Total Winrate: " .. floatAsPercentage(statsSettings.lookupStats.total_wins / statsSettings.lookupStats.total_games))
+    table.insert(labelsLeft, "% of Games as Liberal: " .. floatAsPercentage(statsSettings.lookupStats.liberal_games / statsSettings.lookupStats.total_games))
+    table.insert(labelsLeft, "Liberal Games Played: " .. statsSettings.lookupStats.liberal_games)
+    table.insert(labelsLeft, "Liberal Games Won: " .. statsSettings.lookupStats.liberal_wins)
+    table.insert(labelsLeft, "Liberal Winrate: " .. floatAsPercentage(statsSettings.lookupStats.liberal_wins / statsSettings.lookupStats.liberal_games))
+    table.insert(labelsLeft, "Gamble Attempts: " .. statsSettings.lookupStats.gamble_attempts)
+
+    local labelsRight = {}
+    table.insert(labelsRight, "Fascist Games Played: " .. statsSettings.lookupStats.fascist_games)
+    table.insert(labelsRight, "Fascist Games Won: " .. statsSettings.lookupStats.fascist_wins)
+    table.insert(labelsRight, "Fascist Winrate: " .. floatAsPercentage(statsSettings.lookupStats.fascist_wins / statsSettings.lookupStats.fascist_games))
+    table.insert(labelsRight, "Fas+Hitler Winrate: " .. floatAsPercentage((statsSettings.lookupStats.fascist_wins + statsSettings.lookupStats.hitler_wins) / (statsSettings.lookupStats.fascist_games + statsSettings.lookupStats.hitler_games)))
+    table.insert(labelsRight, "Hitler Games Played: " .. statsSettings.lookupStats.hitler_games)
+    table.insert(labelsRight, "Hitler Games Won: " .. statsSettings.lookupStats.hitler_wins)
+    table.insert(labelsRight, "Hitler Winrate: " .. floatAsPercentage(statsSettings.lookupStats.hitler_wins / statsSettings.lookupStats.hitler_games))
+    table.insert(labelsRight, "Gamble Success Rate: " .. floatAsPercentage(statsSettings.lookupStats.gamble_successes / statsSettings.lookupStats.gamble_attempts))
+
+    self.createButton({click_function = 'nullFunc', label = statsSettings.lookupStats.steam_name, color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
+        position = {0, 0.2, -1}, width = 0, height = 0, font_size = 400, scale = {0.25,0.25,0.25}})
+    local colorsLeft = {'Purple', 'Purple', 'Purple', 'Blue', 'Blue', 'Blue', 'Blue', 'Green'}
+    local colorsRight = {'Red', 'Red', 'Red', 'Red', 'Red', 'Red', 'Red', 'Green'}
+    local zStart = -0.8
+    local zInc = 0.2
+    for i, v in ipairs(labelsLeft) do
+      self.createButton({click_function = 'nullFunc', label = v, color = {0,0,0}, font_color = stringColorToRGB(colorsLeft[i]), function_owner = self,
+          position = {-0.8, 0.2, zStart + zInc * i}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}})
+    end
+    for i, v in ipairs(labelsRight) do
+      self.createButton({click_function = 'nullFunc', label = v, color = {0,0,0}, font_color = stringColorToRGB(colorsRight[i]), function_owner = self,
+          position = {0.8, 0.2, zStart + zInc * i}, width = 0, height = 0, font_size = 240, scale = {0.25,0.25,0.25}})
     end
   end
 end

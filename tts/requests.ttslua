@@ -70,7 +70,9 @@ function getLeaderboardCb(request)
 end
 
 function lookupPlayer()
-  local query = 'get_stats?lookup=true&steam_id0=' .. statsSettings.lookupId .. '&steam_name0=*'
+  local steamIdStr = statsSettings.lookupId and statsSettings.lookupId ~='' and 'steam_id=' .. statsSettings.lookupId .. '&' or ''
+  local steamNameStr = statsSettings.lookupName and statsSettings.lookupName ~= '' and 'steam_name=' .. statsSettings.lookupName .. '&' or ''
+  local query = 'search?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'.. steamIdStr .. steamNameStr
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, lookupCb)
 end
@@ -78,9 +80,24 @@ end
 function lookupCb(request)
   if request.is_done then
     if (request.response_code) == 500 then
+      statsSettings.lookupFound = false
       broadcastToAll('Stats could not be fetched.', {1,0,0})
+      renderView()
       return
     end
+    if (request.response_code) == 404 then
+      statsSettings.lookupFound = false
+      broadcastToAll('User not found.', {1,0,0})
+      renderView()
+      return
+    end
+    if (request.response_code) == 400 then
+      statsSettings.lookupFound = false
+      broadcastToAll('At least one input field must be filled in.', {1,0,0})
+      renderView()
+      return
+    end
+
     response = JSON.decode(request.text)
     local users = response.users
     for k,v in pairs(users) do

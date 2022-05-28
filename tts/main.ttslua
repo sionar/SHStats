@@ -23,8 +23,10 @@ statsSettings = {
   numPlayers = 0,
   gameType = 'vanilla',
   offset = 1,
+  minGames = 0,
   lookupFound = false,
-  lookupId = 0,
+  lookupId = nil,
+  lookupName = '',
   lookupStats = {}
 }
 
@@ -185,5 +187,7 @@ function sendRequest()
     getLeaderboard('liberal_wr')
   elseif statsSettings.view == 'leaderFas' then
     getLeaderboard('fascist_wr')
+  elseif statsSettings.view == 'lookup' then
+    lookupPlayer()
   end
 end

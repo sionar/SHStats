@@ -83,8 +83,41 @@ end
 function handleChangeViewToLookup(clickedButton, playerColor)
   statsSettings.view = 'lookup'
   statsSettings.lookupFound = false
+  renderView()
 end
 
 function handleLookup(clickedButton, playerColor)
   lookupPlayer()
+end
+
+function handleChangeMinGamesValue(obj, playerColor, inputValue, isSelected)
+  if not isSelected then
+    if tonumber(inputValue) >= 0 then
+      statsSettings.minGames = tonumber(inputValue)
+      renderView()
+    end
+  end
+end
+
+function handleChangeOffsetValue(obj, playerColor, inputValue, isSelected)
+  if not isSelected then
+    if tonumber(inputValue) > 0 then
+      statsSettings.offset = inputValue
+      renderView()
+    end
+  end
+end
+
+function handleChangeLookupName(obj, playerColor, inputValue, isSelected)
+  if not isSelected then
+    statsSettings.lookupName = inputValue
+    renderView()
+  end
+end
+
+function handleChangeLookupId(obj, playerColor, inputValue, isSelected)
+  if not isSelected then
+    statsSettings.lookupId = inputValue
+    renderView()
+  end
 end
