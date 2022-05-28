@@ -4,9 +4,7 @@ module Api
   class GamesController < ApplicationController
     def create
       submitter = User.find_by(steam_id: params[:submitter_id])
-      if not submitter
-        submitter = User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
-      end
+      submitter ||= User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
       game = Game.create!(game_type: params[:game_type], num_players: params[:num_players],
                           winning_team: params[:winning_team], win_type: params[:win_type], submitter_id: submitter.id)
       ints = param_ints
@@ -37,12 +35,12 @@ module Api
     end
 
     def game_stats(games, num_players)
-      return {
-        num_players: num_players,
+      {
+        num_players:,
         total_games: games.count,
-        liberal_wins: games.where(winning_team: "liberal").count,
-        liberal_wins_policy: games.where(winning_team: "liberal", win_type: "policy").count,
-        fascist_wins_policy: games.where(winning_team: "fascist", win_type: "policy").count
+        liberal_wins: games.where(winning_team: 'liberal').count,
+        liberal_wins_policy: games.where(winning_team: 'liberal', win_type: 'policy').count,
+        fascist_wins_policy: games.where(winning_team: 'fascist', win_type: 'policy').count
       }
     end
   end

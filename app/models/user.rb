@@ -57,9 +57,7 @@ class User < ApplicationRecord
     User.all.sort_by(&:hit_wr).reverse!
   end
 
-  def search_data 
-    { steam_name: steam_name
-
-    }
+  def search_data
+    { steam_name: }
   end
 end

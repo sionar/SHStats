@@ -33,9 +33,10 @@ module Api
     def search
       steam_id = params[:steam_id]
       steam_name = params[:steam_name]
-      if !(steam_id || steam_name)
-        render json: {errors: ["no steam_id or steam_name entered"]}, status: 400 and return
+      unless steam_id || steam_name
+        render json: { errors: ['no steam_id or steam_name entered'] }, status: 400 and return
       end
+
       options = {
         fields: [:steam_name],
         match: :word_middle,
@@ -43,22 +44,19 @@ module Api
         misspellings: { below: 3 }
       }
 
-      @user = (params[:steam_id] && User.find_by(steam_id: steam_id)) 
-      if !@user
+      @user = (params[:steam_id] && User.find_by(steam_id:))
+      unless @user
         results = params[:steam_name] && User.search(params[:steam_name], **options)
-        @user = results[0] if results.total_count > 0
+        @user = results[0] if results.total_count.positive?
       end
-      if !@user
-        render json: {errors: ["no user found"]}, status: 404 and return 
-      end
+      render json: { errors: ['no user found'] }, status: 404 and return unless @user
 
       render :search, status: 200
     end
 
-
     def game_params
       p = {}
-      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != "0"
+      p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
       p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
       p
     end
