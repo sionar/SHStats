@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  searchkick
+  searchkick word_middle: [:steam_name]
 
   validates :steam_id, :steam_name, presence: true
 
