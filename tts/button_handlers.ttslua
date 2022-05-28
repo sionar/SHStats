@@ -55,34 +55,34 @@ function handleRecordFasWinHitler(clickedButton, playerColor)
 end
 
 function handleChangeViewToMain(clickedButton, playerColor)
-  displaySettings.view = 'main'
+  statsSettings.view = 'main'
+  getStats()
   renderView()
 end
 
 function handleChangeViewToMisc(clickedButton, playerColor)
-  displaySettings.view = 'misc'
+  statsSettings.view = 'misc'
   getOverallStats()
 end
 
 function handleChangeViewToLeaderAll(clickedButton, playerColor)
-  displaySettings.view = 'leaderAll'
-  renderView()
+  statsSettings.view = 'leaderAll'
+  getLeaderboard('total_wr')
 end
 
 function handleChangeViewToLeaderLib(clickedButton, playerColor)
-  displaySettings.view = 'leaderLib'
-  renderView()
+  statsSettings.view = 'leaderLib'
+  getLeaderboard('liberal_wr')
 end
 
 function handleChangeViewToLeaderFas(clickedButton, playerColor)
-  displaySettings.view = 'leaderFas'
-  renderView()
+  statsSettings.view = 'leaderFas'
+  getLeaderboard('fascist_wr')
 end
 
 function handleChangeViewToLookup(clickedButton, playerColor)
-  displaySettings.view = 'lookup'
+  statsSettings.view = 'lookup'
   statsSettings.lookupFound = false
-  renderView()
 end
 
 function handleLookup(clickedButton, playerColor)

@@ -3,7 +3,6 @@ baseUrl = 'https://shstats.herokuapp.com/api/'
 function generateQuery()
   local query = 'get_stats?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'
   local i = 0
-  print(logString(gameState.sessionPlayers))
   for k,v in pairs(gameState.sessionPlayers) do
     if v.steam_id and v.steam_name then
       query = query .. 'steam_id' .. i .. '=' .. v.steam_id .. '&' .. 'steam_name' .. i .. '=' .. v.steam_name .. '&'
@@ -49,8 +48,8 @@ function getOverallStatsCb(request)
   end
 end
 
-function getLeaderboard()
-  local query = 'users?game_mode=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+function getLeaderboard(sort_by)
+  local query = 'users?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&sort_by=' .. sort_by
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, getLeaderboardCb)
 end
@@ -62,8 +61,10 @@ function getLeaderboardCb(request)
       return
     end
     response = JSON.decode(request.text)
-    leaderboard = response
-    log(leaderboard)
+    leaderboard = {}
+    for i,v in ipairs(response.users) do
+      table.insert(leaderboard, v)
+    end
     renderView()
   end
 end
@@ -106,7 +107,6 @@ function postGame(playerColor)
     form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
     form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
   end
-  print(logString(form))
   WebRequest.post(endpoint, form, postGameCb)
 end
 

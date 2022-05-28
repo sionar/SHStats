@@ -6,9 +6,6 @@ START_POS = {x = 100, y = 1.1, z = 8}
 
 
 ------------------Variables
-displaySettings = {
-  view = 'main'
-}
 gameState = {
   gameType = 'vanilla',
   isStarted = false,
@@ -22,9 +19,10 @@ leaderboard = {}
 overallStats = {}
 stats = {}
 statsSettings = {
+  view = 'main',
   numPlayers = 0,
   gameType = 'vanilla',
-  offset = 0,
+  offset = 1,
   lookupFound = false,
   lookupId = 0,
   lookupStats = {}
@@ -127,7 +125,7 @@ function toggleGameType()
     gameState.gameType = 'vanilla'
     statsSettings.gameType = 'vanilla'
   end
-  getStats()
+  sendRequest()
 end
 
 function toggleNumPlayers()
@@ -138,7 +136,7 @@ function toggleNumPlayers()
   elseif statsSettings.numPlayers == 0 then
     statsSettings.numPlayers = 5
   end
-  getStats()
+  sendRequest()
 end
 
 function isRecordable()
@@ -167,4 +165,18 @@ function recordGame(playerColor)
   gameState.isRecorded = true
   postGame(playerColor)
   renderView()
+end
+
+function sendRequest()
+  if statsSettings.view == 'main' then
+    getStats()
+  elseif statsSettings.view == 'misc' then
+    getOverallStats()
+  elseif statsSettings.view == 'leaderAll' then
+    getLeaderboard('total_wr')
+  elseif statsSettings.view == 'leaderLib' then
+    getLeaderboard('liberal_wr')
+  elseif statsSettings.view == 'leaderFas' then
+    getLeaderboard('fascist_wr')
+  end
 end
