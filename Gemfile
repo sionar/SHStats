@@ -45,7 +45,7 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 gem 'bootsnap', require: false
 
 gem 'searchkick'
-gem 'elasticsearch'
+gem 'elasticsearch', "< 7.11"
 
 # Use Sass to process CSS
 # gem "sassc-rails"
