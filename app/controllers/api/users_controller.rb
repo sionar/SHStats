@@ -47,7 +47,7 @@ module Api
       user = (params[:steam_id] && User.find_by(steam_id:))
       unless user
         results = params[:steam_name] && User.search(params[:steam_name], **options)
-        user = results[0] if results.total_count.positive?
+        user = results.first if results
       end
       render json: { errors: ['no user found'] }, status: 404 and return unless user
 
