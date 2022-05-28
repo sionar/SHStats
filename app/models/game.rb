@@ -14,8 +14,6 @@ class Game < ApplicationRecord
   def self.delete_games_by_submitter(submitter_id)
     submitter = User.find_by(steam_id: submitter_id)
     games = submitter.submitted_games
-    games.each do |game|
-      game.destroy!
-    end
+    games.each(&:destroy!)
   end
 end

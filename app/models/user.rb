@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  searchkick
+  searchkick word_middle: [:steam_name]
 
   validates :steam_id, :steam_name, presence: true
 
@@ -57,9 +57,7 @@ class User < ApplicationRecord
     User.all.sort_by(&:hit_wr).reverse!
   end
 
-  def search_data 
-    { steam_name: steam_name
-
-    }
+  def search_data
+    { steam_name: }
   end
 end
