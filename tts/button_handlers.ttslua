@@ -31,7 +31,6 @@ function handleRecordLibWinPolicy(clickedButton, playerColor)
   gameState.winningTeam = 'liberal'
   gameState.winType = 'policy'
   recordGame(playerColor)
-  broadcastToAll("Liberal policy win recorded.", stringColorToRGB("Blue"))
 end
 
 function handleRecordLibWinHitler(clickedButton, playerColor)
@@ -39,7 +38,6 @@ function handleRecordLibWinHitler(clickedButton, playerColor)
   gameState.winningTeam = 'liberal'
   gameState.winType = 'hitler'
   recordGame(playerColor)
-  broadcastToAll("Liberal hitler win recorded.", stringColorToRGB("Blue"))
 end
 
 function handleRecordFasWinPolicy(clickedButton, playerColor)
@@ -47,7 +45,6 @@ function handleRecordFasWinPolicy(clickedButton, playerColor)
   gameState.winningTeam = 'fascist'
   gameState.winType = 'policy'
   recordGame(playerColor)
-  broadcastToAll("Fascist policy win recorded.", stringColorToRGB("Red"))
 end
 
 function handleRecordFasWinHitler(clickedButton, playerColor)
@@ -55,7 +52,6 @@ function handleRecordFasWinHitler(clickedButton, playerColor)
   gameState.winningTeam = 'fascist'
   gameState.winType = 'hitler'
   recordGame(playerColor)
-  broadcastToAll("Fascist hitler win recorded.", stringColorToRGB("Red"))
 end
 
 function handleChangeViewToMain(clickedButton, playerColor)

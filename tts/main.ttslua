@@ -1,8 +1,8 @@
 ------------------Constants
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
-START_POS = {x = 100, y = 1.1, z = 8}
+START_POS = {['Secret Hitler: CE'] = {x = 100, y = 1.1, z = 8}, ['Secret Hitler: 55'] = {x = 0, y = 1.1, z = 70}}
 
 
 ------------------Variables
@@ -11,6 +11,7 @@ gameState = {
   isStarted = false,
   isRecorded = false,
   sessionPlayers = {},
+  numPlayers = 0,
   startTime = 0,
   winningTeam = '',
   winType = '',
@@ -54,7 +55,6 @@ function onSave()
   return saveString
 end
 
-
 function onPlayerChangeColor(playerColor)
   if not gameState.isStarted then
     Timer.destroy('playerChangeColor')
@@ -87,6 +87,7 @@ function updatePlayers()
       sessionPlayers[v] = {steam_id = Player[v].steam_id, role = roles[v] or '', steam_name = Player[v].steam_name}
     end
   end
+  nextGameState.numPlayers = #players
   nextGameState.sessionPlayers = sessionPlayers
   gameState = nextGameState
   getStats()
@@ -104,7 +105,7 @@ function moveBoard()
       end
     end
     local xOffset = (numFound - 1) * 30
-    self.setPositionSmooth({START_POS['x'] + xOffset, START_POS['y'], START_POS['z']})
+    self.setPositionSmooth({START_POS[globalName].x + xOffset, START_POS[globalName].y, START_POS[globalName].z})
     self.setLock(true)
   end
 end
@@ -123,6 +124,22 @@ function checkStartedTimer()
   end
 end
 
+function checkReset()
+  Wait.time(checkResetTimer, 2)
+end
+
+function checkResetTimer()
+  local isStarted = Global.getVar('started')
+  if not isStarted and gameState.isRecorded then
+    gameState.isRecorded = false
+    gameState.isStarted = false
+    gameState.startTime = os.time()
+    checkStarted()
+  else
+    print('not restarted')
+    checkReset()
+  end
+end
 
 ------------------Main Functions
 function toggleGameType()
@@ -155,7 +172,7 @@ function isRecordable()
   elseif gameState.isRecorded then
     broadcastToAll('Error recording game: Game already recorded for this session.', {1,0,0})
     return false
-  elseif #gameState.sessionPlayers < 5 then
+  elseif gameState.numPlayers < 5 then
     broadcastToAll('Error recording game: Not enough players seated', {1,0,0})
     return false
   elseif currTime - gameState.startTime < 30 then
@@ -167,11 +184,10 @@ function isRecordable()
 end
 
 function recordGame(playerColor)
-  -- if not isRecordable() then
-  --   return
-  -- end
+  if not isRecordable() then return end
   gameState.isRecorded = true
   postGame(playerColor)
+  checkReset()
   renderView()
 end
 

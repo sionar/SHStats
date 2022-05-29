@@ -120,9 +120,11 @@ function postGame(playerColor)
   }
   local i = 0
   for k,v in pairs(gameState.sessionPlayers) do
-    form['steam_id'..(i)] = tostring(v.steam_id)
-    form['steam_name'..(i)] = tostring(v.steam_name)
-    form['role'..(i)] = (v.role)
+    if v.steam_id and v.steam_name and v.role then
+      form['steam_id'..(i)] = tostring(v.steam_id)
+      form['steam_name'..(i)] = tostring(v.steam_name)
+      form['role'..(i)] = v.role
+    end
     i = i+1
   end
   form.num_players = i
@@ -136,6 +138,9 @@ function postGameCb(request)
       gameState.isRecorded = false
       return
     end
+    local color = gameState.winningTeam == 'liberal' and 'Blue' or 'Red'
+    local winningTeamStr = gameState.winningTeam == 'liberal' and 'Liberal ' or 'Fascist '
+    broadcastToAll(winningTeamStr .. gameState.winType .. ' win recorded.', stringColorToRGB(color))
     getStats()
   end
 end
