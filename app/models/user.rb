@@ -24,7 +24,7 @@ class User < ApplicationRecord
   end
 
   def fas_wr
-    players = self.players.joins(:game).where(@@game_params).where(role: ['fascist', 'hitler'])
+    players = self.players.joins(:game).where(@@game_params).where(role: %w[fascist hitler])
     return 0 if players.count.zero?
 
     players.where(win: true).count / players.count.to_f
