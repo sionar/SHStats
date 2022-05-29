@@ -10,8 +10,6 @@ module Api
         @users = User.sorted_by_lib_wr(game_params)
       when 'fascist_wr'
         @users = User.sorted_by_fas_wr(game_params)
-      when 'hitler_wr'
-        @users = User.sorted_by_hit_wr(game_params)
       end
       @users = @users.map do |user|
         get_stats(user)
@@ -88,20 +86,6 @@ module Api
       user_obj[:gamble_attempts] = user.gamble_attempts
       user_obj[:gamble_successes] = user.gamble_successes
       user_obj
-    end
-
-    def liberal_wr
-      players = players.join(:game).where(game_params).where(role: 'liberal')
-      return 0 if players.count = 0
-
-      (players.where(win: true).count / players.count)
-    end
-
-    def fascist_wr
-      players = players.join(:game).where(game_params).where(role: 'fascist')
-      return 0 if players.count = 0
-
-      (players.where(win: true).count / players.count)
     end
   end
 end
