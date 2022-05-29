@@ -11,21 +11,21 @@ class User < ApplicationRecord
 
   def total_wr
     players = self.players.joins(:game).where(@@game_params)
-    return 0 if players.count.zero?
+    return [0, 0] if players.count.zero?
 
     [players.where(win: true).count / players.count.to_f, -1 * players.count]
   end
 
   def lib_wr
     players = self.players.joins(:game).where(@@game_params).where(role: 'liberal')
-    return 0 if players.count.zero?
+    return [0, 0] if players.count.zero?
 
     [players.where(win: true).count / players.count.to_f, -1 * players.count]
   end
 
   def fas_wr
     players = self.players.joins(:game).where(@@game_params).where(role: %w[fascist hitler])
-    return 0 if players.count.zero?
+    return [0, 0] if players.count.zero?
 
     [players.where(win: true).count / players.count.to_f, -1 * players.count]
   end
