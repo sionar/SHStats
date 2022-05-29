@@ -1,5 +1,5 @@
 ------------------Constants
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
 START_POS = {x = 100, y = 1.1, z = 8}
@@ -30,7 +30,6 @@ statsSettings = {
   lookupStats = {}
 }
 
-
 ------------------Events
 function onLoad(saveString)
   if not (saveString == '') then
@@ -57,9 +56,9 @@ end
 
 
 function onPlayerChangeColor(playerColor)
-  if playerColor != "Black" and playerColor != "Grey" and not gameState.isStarted then
-    updatePlayers()
-    renderView()
+  if not gameState.isStarted then
+    Timer.destroy('playerChangeColor')
+    Timer.create({identifier='playerChangeColor', function_name='updatePlayers', delay=5})
   end
 end
 
@@ -73,7 +72,7 @@ function updatePlayers()
   local roles = {}
   local sessionPlayers = {}
   local globalName = Global.getVar('MOD_NAME')
-  if globalName == 'Secret Hitler: CE' then
+  if globalName == 'Secret Hitler: CE' or globalName == 'Secret Hitler: 55'  then
     roles = Global.getTable('roles')
     nextGameState.isStarted = Global.getVar('started')
   end
@@ -85,22 +84,22 @@ function updatePlayers()
   end
   if players ~= nil then
     for k,v in pairs(players) do
-      entry = {steam_id = Player[v].steam_id, role = roles[v] or '', steam_name = Player[v].steam_name}
-      table.insert(sessionPlayers,entry)
+      sessionPlayers[v] = {steam_id = Player[v].steam_id, role = roles[v] or '', steam_name = Player[v].steam_name}
     end
   end
   nextGameState.sessionPlayers = sessionPlayers
   gameState = nextGameState
-  broadcastToAll('Seated players updated.', {0,0,1})
+  getStats()
+  broadcastToAll("Seated players updated", stringColorToRGB("Blue"))
 end
 
 function moveBoard()
   local globalName = Global.getVar('MOD_NAME')
-  if globalName == 'Secret Hitler: CE' then
+  if globalName == 'Secret Hitler: CE' or globalName == 'Secret Hitler: 55' then
     local allObjs = getAllObjects()
     local numFound = 0
     for k,v in pairs(allObjs) do
-      if v.getName() == 'Secret Hitler Scoreboard Web' then
+      if v.getName() == 'Secret Hitler Scoreboard' then
         numFound = numFound + 1
       end
     end
@@ -151,16 +150,16 @@ end
 function isRecordable()
   local currTime = os.time()
   if not gameState.isStarted then
-    broadcastToAll("Error recording game: Game not started.", {1,0,0})
+    broadcastToAll('Error recording game: Game not started.', {1,0,0})
     return false
   elseif gameState.isRecorded then
-    broadcastToAll("Error recording game: Game already recorded for this session.", {1,0,0})
+    broadcastToAll('Error recording game: Game already recorded for this session.', {1,0,0})
     return false
   elseif #gameState.sessionPlayers < 5 then
-    broadcastToAll("Error recording game: Not enough players seated", {1,0,0})
+    broadcastToAll('Error recording game: Not enough players seated', {1,0,0})
     return false
   elseif currTime - gameState.startTime < 30 then
-    broadcastToAll("Error recording game: You are trying to record a game too soon.", {1,0,0})
+    broadcastToAll('Error recording game: You are trying to record a game too soon.', {1,0,0})
     return false
   else
     return true
@@ -168,9 +167,9 @@ function isRecordable()
 end
 
 function recordGame(playerColor)
-  if not isRecordable() then
-    return
-  end
+  -- if not isRecordable() then
+  --   return
+  -- end
   gameState.isRecorded = true
   postGame(playerColor)
   renderView()

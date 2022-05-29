@@ -113,17 +113,19 @@ function postGame(playerColor)
   local endpoint = baseUrl .. 'games'
   local form = {
     game_type = gameState.gameType,
-    num_players = #gameState.sessionPlayers,
     submitter_id = player.steam_id,
     submitter_name = player.steam_name,
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
-  for i = 1, #gameState.sessionPlayers do
-    form['steam_id'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_id)
-    form['steam_name'..(i-1)] = tostring(gameState.sessionPlayers[i].steam_name)
-    form['role'..(i-1)] = (gameState.sessionPlayers[i].role)
+  local i = 0
+  for k,v in pairs(gameState.sessionPlayers) do
+    form['steam_id'..(i)] = tostring(v.steam_id)
+    form['steam_name'..(i)] = tostring(v.steam_name)
+    form['role'..(i)] = (v.role)
+    i = i+1
   end
+  form.num_players = i
   WebRequest.post(endpoint, form, postGameCb)
 end
 
