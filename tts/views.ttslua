@@ -142,7 +142,9 @@ end
 
 function renderMainTableRows()
   for i,color in ipairs(COLORS) do
-    renderMainTableRow(i, color)
+    if gameState.sessionPlayers[color] then
+      renderMainTableRow(i, color)
+    end
   end
 end
 
