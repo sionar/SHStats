@@ -10,8 +10,6 @@ module Api
         @users = User.sorted_by_lib_wr(game_params)
       when 'fascist_wr'
         @users = User.sorted_by_fas_wr(game_params)
-      when 'hitler_wr'
-        @users = User.sorted_by_hit_wr(game_params)
       end
       @users = @users.map do |user|
         get_stats(user)
@@ -58,10 +56,11 @@ module Api
     def gamble
       user = User.find_by(steam_id: params[:steam_id])
       render json: { errors: ['no user found'] }, status: 404 and return unless user
+
       gamble_successes = user.gamble_successes
       gamble_attempts = user.gamble_attempts
       gamble_successes += 1 if params[:gamble_result] == 'win'
-      user.update!(gamble_successes: gamble_successes, gamble_attempts: gamble_attempts + 1)
+      user.update!(gamble_successes:, gamble_attempts: gamble_attempts + 1)
       render :gamble, status: 200
     end
 
@@ -88,20 +87,6 @@ module Api
       user_obj[:gamble_attempts] = user.gamble_attempts
       user_obj[:gamble_successes] = user.gamble_successes
       user_obj
-    end
-
-    def liberal_wr
-      players = players.join(:game).where(game_params).where(role: 'liberal')
-      return 0 if players.count = 0
-
-      (players.where(win: true).count / players.count)
-    end
-
-    def fascist_wr
-      players = players.join(:game).where(game_params).where(role: 'fascist')
-      return 0 if players.count = 0
-
-      (players.where(win: true).count / players.count)
     end
   end
 end
