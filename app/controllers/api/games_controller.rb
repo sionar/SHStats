@@ -30,6 +30,15 @@ module Api
       render :index, status: 200
     end
 
+    def update
+      render json: { errors: ['There was an issue updating the game.'] }, status: 400 and return unless request.headers["User-Agent"].include? "UnityPlayer"
+      @game = Game.find(params[:id])
+      render json: { errors: ['Game not found.'] }, status: 404 and return unless @game
+      isMissingParams? or isParamsUnmatched? and render json: { errors: ['There was an issue updating the game.'] }, status: 404 and return
+      @game.update!(game_type: params[:game_type], winning_team: params[:winning_team], win_type: params[:win_type])
+      render :update, status: 200
+    end
+
     def game_params
       p = {}
       p[:game_type] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
@@ -45,5 +54,16 @@ module Api
         fascist_wins_policy: games.where(winning_team: 'fascist', win_type: 'policy').count
       }
     end
+
+    def isMissingParams?
+      return true if !params[:game_type] or !params[:winning_team] or !params[:win_type]
+      return false
+    end
+
+    def isParamsUnmatched?
+      return true if @game.submitter_id != params[:submitter_id] or @game.submitter_ip != request.remote_ip
+      return false
+    end
+
   end
 end

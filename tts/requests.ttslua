@@ -185,7 +185,7 @@ function postGameCb(request)
 end
 
 function updateGameResults()
-  local endpoint = baseUrl .. 'games/update/' .. gameState.gameId
+  local endpoint = baseUrl .. 'games/' .. gameState.gameId
   local form = {
     game_type = gameState.gameType,
     submitter_id = gameState.host_id,
