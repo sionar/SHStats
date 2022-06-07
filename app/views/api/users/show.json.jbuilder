@@ -5,4 +5,5 @@ json.users do
     json.partial! '/api/users/user', user:
   end
   json.user_agent @user_agent
+  json.ip @ip
 end
