@@ -211,9 +211,11 @@ end
 
 function renderLeaderboardView()
   local filteredLeaderboard = {}
+  local numGames = {}
   for i,v in ipairs(leaderboard) do
     for id,stats in pairs(v) do
-      if stats.total_games >= statsSettings.minGames then
+      numGames = {leaderAll = stats.total_games, leaderLib = stats.liberal_games, leaderFas = stats.fascist_games + stats.hitler_games}
+      if numGames[statsSettings.view] >= statsSettings.minGames then
         table.insert(filteredLeaderboard, v)
       end
     end

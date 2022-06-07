@@ -1,5 +1,5 @@
 ------------------Constants
-VERSION = '0.0.4'
+VERSION = '0.0.6'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
 START_POS = {['Secret Hitler: CE'] = {x = 100, y = 1.1, z = 8}, ['Secret Hitler: 55'] = {x = 0, y = 1.1, z = 70}}
@@ -25,6 +25,7 @@ statsSettings = {
   gameType = 'vanilla',
   offset = 1,
   minGames = 0,
+  isLatestVersion = true,
   lookupFound = false,
   lookupId = nil,
   lookupName = '',
@@ -43,6 +44,7 @@ function onLoad(saveString)
   updatePlayers()
   moveBoard()
   checkStarted()
+  checkVersion()
   getStats()
   self.setDescription('v ' .. VERSION .. '\nMade by Sionar')
 end
@@ -177,6 +179,8 @@ function isRecordable()
   elseif currTime - gameState.startTime < 30 then
     broadcastToAll('Error recording game: You are trying to record a game too soon.', {1,0,0})
     return false
+  elseif not statsSettings.isLatestVersion then
+    broadcastToAll('Error recording game: There is a newer version of the Scoreboard available.', {1,0,0})
   else
     return true
   end

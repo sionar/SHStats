@@ -1,4 +1,42 @@
 baseUrl = 'https://shstats.herokuapp.com/api/'
+githubUrl = 'https://api.github.com/repos/sionar/shstats/tags'
+
+function checkVersion()
+  WebRequest.get(githubUrl, checkVersionCb)
+end
+
+function checkVersionCb(request)
+  if request.is_done then
+    local response = JSON.decode(request.text)
+    local latestVersion = response[#response].name
+    statsSettings.isLatestVersion = compareVersions(latestVersion, VERSION)
+    if not statsSettings.isLatestVersion then
+      Wait.time(function() broadcastToAll('There is a new version of Secret Hitler Scoreboard available. Games cannot be recorded from this Scoreboard.', stringColorToRGB('Red')) end, 5, 2)
+    end
+  end
+end
+
+function split(inputStr, sep)
+  if sep == nil then
+    sep = "%s"
+  end
+  local out = {}
+  for str in string.gmatch(inputStr, "([^"..sep.."]+)") do
+    table.insert(out, str)
+  end
+  return out
+end
+
+function compareVersions(latestVersion, thisVersion)
+  local v1 = split(latestVersion, ".")
+  local v2 = split(thisVersion, ".")
+  if v1[1] > v2[1] then return false
+  elseif v1[1] < v2[1] then return true end
+  if v1[2] > v2[2] then return false
+  elseif v1[2] < v2[2] then return true end
+  if v1[3] > v2[3] then return false
+  else return true end
+end
 
 function generateQuery()
   local query = 'get_stats?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'
@@ -24,7 +62,7 @@ function getStatsCb(request)
       broadcastToAll('Stats could not be fetched.', {1,0,0})
       return
     end
-    response = JSON.decode(request.text)
+    local response = JSON.decode(request.text)
     stats = response.users
     renderView()
   end
@@ -42,7 +80,7 @@ function getOverallStatsCb(request)
       broadcastToAll('Stats could not be fetched.', {1,0,0})
       return
     end
-    response = JSON.decode(request.text)
+    local response = JSON.decode(request.text)
     overallStats = response.stats
     renderView()
   end
@@ -60,7 +98,7 @@ function getLeaderboardCb(request)
       broadcastToAll('Stats could not be fetched.', {1,0,0})
       return
     end
-    response = JSON.decode(request.text)
+    local response = JSON.decode(request.text)
     leaderboard = {}
     for i,v in ipairs(response.users) do
       table.insert(leaderboard, v)
@@ -98,7 +136,7 @@ function lookupCb(request)
       return
     end
 
-    response = JSON.decode(request.text)
+    local response = JSON.decode(request.text)
     local users = response.users
     for k,v in pairs(users) do
       statsSettings.lookupStats = v

@@ -27,7 +27,7 @@ function handleChangeNumPlayers(clickedButton, playerColor)
 end
 
 function handleRecordLibWinPolicy(clickedButton, playerColor)
-  if not hasPermission(playerColor) then return end
+  if not hasPermission(playerColor)  then return end
   gameState.winningTeam = 'liberal'
   gameState.winType = 'policy'
   recordGame(playerColor)
