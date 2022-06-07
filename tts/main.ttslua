@@ -15,6 +15,8 @@ gameState = {
   startTime = 0,
   winningTeam = '',
   winType = '',
+  hostId = '',
+  hostName = ''
 }
 leaderboard = {}
 overallStats = {}
@@ -43,6 +45,7 @@ function onLoad(saveString)
   gameState.startTime = os.time()
   updatePlayers()
   moveBoard()
+  updateHost()
   checkStarted()
   checkVersion()
   getStats()
@@ -109,6 +112,17 @@ function moveBoard()
     local xOffset = (numFound - 1) * 30
     self.setPositionSmooth({START_POS[globalName].x + xOffset, START_POS[globalName].y, START_POS[globalName].z})
     self.setLock(true)
+  end
+end
+
+function updateHost()
+  local allPlayers = Player.getPlayers()
+  for i,v in ipairs(allPlayers) do
+    if v.host then
+      gameState.hostId = v.steam_id
+      gameState.hostName = v.steam_name
+      return
+    end
   end
 end
 
