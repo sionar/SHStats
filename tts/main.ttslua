@@ -151,6 +151,7 @@ function checkResetTimer()
     gameState.isRecorded = false
     gameState.isStarted = false
     gameState.startTime = os.time()
+    gameState.gameId = ''
     checkStarted()
   else
     checkReset()

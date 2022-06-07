@@ -150,8 +150,8 @@ function postGame()
   local endpoint = baseUrl .. 'games'
   local form = {
     game_type = gameState.gameType,
-    submitter_id = gameState.host_id,
-    submitter_name = gameState.host_name,
+    submitter_id = tostring(gameState.host_id),
+    submitter_name = tostring(gameState.host_name),
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
@@ -188,8 +188,8 @@ function updateGameResults()
   local endpoint = baseUrl .. 'games/' .. gameState.gameId
   local form = {
     game_type = gameState.gameType,
-    submitter_id = gameState.host_id,
-    submitter_name = gameState.host_name,
+    submitter_id = tostring(gameState.host_id),
+    submitter_name = tostring(gameState.host_name),
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
@@ -198,7 +198,7 @@ end
 
 function updateGameResultsCb(request)
   if request.is_done then
-    if request.response_code == 500 or request.response_code == 400 then
+    if request.response_code == 500 or request.response_code == 400 or request.response_code == 404 or request.response_code == 422 then
       broadcastToAll('There was an issue updating the game results.', {1,0,0})
       return
     end
