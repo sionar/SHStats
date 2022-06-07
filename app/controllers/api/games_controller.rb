@@ -45,6 +45,9 @@ module Api
       is_missing_params? or is_params_unmatched? and render json: { errors: ['There was an issue updating the game.'] },
                                                         status: 422 and return
       @game.update!(game_type: params[:game_type], winning_team: params[:winning_team], win_type: params[:win_type])
+      @game.players.each do |player|
+        player.update!(win: player.role == params[:winning_team] || (player.role == 'hitler' && params[:winning_team] == 'fascist'))
+      end
       render :update, status: 200
     end
 
