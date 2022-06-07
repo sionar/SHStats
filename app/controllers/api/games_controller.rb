@@ -17,7 +17,7 @@ module Api
         user = create_or_update_user(i)
         role = params[int_to_sym(i, 'role')]
         win = role == params[:winning_team] || (role == 'hitler' && params[:winning_team] == 'fascist')
-        player = Player.create!(user:, game:, role:, win:)
+        player = Player.create!(user:, game: @game, role:, win:)
       end
       render :create, status: 200
     end
