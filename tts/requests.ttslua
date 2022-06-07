@@ -1,5 +1,5 @@
 baseUrl = 'https://shstats.herokuapp.com/api/'
-githubUrl = 'https://api.github.com/repos/sionar/shstats/tags'
+githubUrl = 'https://api.github.com/repos/sionar/shstats/releases/latest'
 
 function checkVersion()
   WebRequest.get(githubUrl, checkVersionCb)
@@ -8,7 +8,7 @@ end
 function checkVersionCb(request)
   if request.is_done then
     local response = JSON.decode(request.text)
-    local latestVersion = response[#response].name
+    local latestVersion = response.tag_name
     statsSettings.isLatestVersion = compareVersions(latestVersion, VERSION)
     if not statsSettings.isLatestVersion then
       Wait.time(function() broadcastToAll('There is a new version of Secret Hitler Scoreboard available. Games cannot be recorded from this Scoreboard.', stringColorToRGB('Red')) end, 5, 2)
