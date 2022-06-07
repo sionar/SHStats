@@ -43,7 +43,7 @@ module Api
       render json: { errors: ['Game not found.'] }, status: 404 and return unless @game
 
       isMissingParams? or isParamsUnmatched? and render json: { errors: ['There was an issue updating the game.'] },
-                                                        status: 404 and return
+                                                        status: 422 and return
       @game.update!(game_type: params[:game_type], winning_team: params[:winning_team], win_type: params[:win_type])
       render :update, status: 200
     end
@@ -71,7 +71,10 @@ module Api
     end
 
     def isParamsUnmatched?
-      return true if (@game.submitter_id != params[:submitter_id]) || (@game.submitter_ip != request.remote_ip)
+      submitter = User.find_by(steam_id: params[:submitter_id])
+      submitter ||= User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
+
+      return true if (@game.submitter_id != submitter.id || (@game.submitter_ip != request.remote_ip)
 
       false
     end
