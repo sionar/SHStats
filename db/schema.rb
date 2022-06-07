@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,41 +12,41 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_06_07_192854) do
+ActiveRecord::Schema[7.0].define(version: 20_220_607_195_239) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension 'plpgsql'
 
-  create_table "games", force: :cascade do |t|
-    t.string "game_type", null: false
-    t.integer "num_players", null: false
-    t.string "winning_team", null: false
-    t.string "win_type", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "submitter_id", null: false
-    t.index ["submitter_id"], name: "index_games_on_submitter_id"
+  create_table 'games', force: :cascade do |t|
+    t.string 'game_type', null: false
+    t.integer 'num_players', null: false
+    t.string 'winning_team', null: false
+    t.string 'win_type', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.bigint 'submitter_id', null: false
+    t.string 'submitter_ip'
+    t.index ['submitter_id'], name: 'index_games_on_submitter_id'
   end
 
-  create_table "players", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "role", null: false
-    t.bigint "game_id"
-    t.bigint "user_id"
-    t.boolean "win"
-    t.index ["game_id"], name: "index_players_on_game_id"
-    t.index ["user_id"], name: "index_players_on_user_id"
+  create_table 'players', force: :cascade do |t|
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.string 'role', null: false
+    t.bigint 'game_id'
+    t.bigint 'user_id'
+    t.boolean 'win'
+    t.index ['game_id'], name: 'index_players_on_game_id'
+    t.index ['user_id'], name: 'index_players_on_user_id'
   end
 
-  create_table "users", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "steam_id", null: false
-    t.string "steam_name", null: false
-    t.integer "gamble_successes", default: 0
-    t.integer "gamble_attempts", default: 0
-    t.index ["steam_id"], name: "index_users_on_steam_id", unique: true
-    t.index ["steam_name"], name: "index_users_on_steam_name"
+  create_table 'users', force: :cascade do |t|
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.string 'steam_id', null: false
+    t.string 'steam_name', null: false
+    t.integer 'gamble_successes', default: 0
+    t.integer 'gamble_attempts', default: 0
+    t.index ['steam_id'], name: 'index_users_on_steam_id', unique: true
+    t.index ['steam_name'], name: 'index_users_on_steam_name'
   end
-
 end

@@ -14,7 +14,7 @@ module Api
       @users = @users.map do |user|
         get_stats(user)
       end
-      @users = @users.select{|user| user[:total_games] > 0}
+      @users = @users.select { |user| (user[:total_games]).positive? }
 
       render :index, status: 200
     end
