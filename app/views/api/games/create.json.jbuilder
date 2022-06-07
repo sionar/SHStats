@@ -1,4 +1,5 @@
 # frozen_string_literal: true
 
-json.games do
+json.game do
+  json.id: @game.id
 end

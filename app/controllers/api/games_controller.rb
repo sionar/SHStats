@@ -3,10 +3,12 @@
 module Api
   class GamesController < ApplicationController
     def create
+      render json: { errors: ['There was an issue submitting the game.'] }, status: 400 and return unless request.headers["User-Agent"].include? "UnityPlayer"
+
       submitter = User.find_by(steam_id: params[:submitter_id])
       submitter ||= User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
-      game = Game.create!(game_type: params[:game_type], num_players: params[:num_players],
-                          winning_team: params[:winning_team], win_type: params[:win_type], submitter_id: submitter.id)
+      @game = Game.create!(game_type: params[:game_type], num_players: params[:num_players],
+                          winning_team: params[:winning_team], win_type: params[:win_type], submitter_id: submitter.id, submitter_ip: request.remote_ip)
       ints = param_ints
       ints.each do |i|
         user = create_or_update_user(i)

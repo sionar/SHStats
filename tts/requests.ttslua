@@ -146,13 +146,12 @@ function lookupCb(request)
   end
 end
 
-function postGame(playerColor)
-  local player = Player[playerColor]
+function postGame()
   local endpoint = baseUrl .. 'games'
   local form = {
     game_type = gameState.gameType,
-    submitter_id = player.steam_id,
-    submitter_name = player.steam_name,
+    submitter_id = gameState.host_id,
+    submitter_name = gameState.host_name,
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
@@ -171,14 +170,41 @@ end
 
 function postGameCb(request)
   if request.is_done then
-    if (request.response_code) == 500 then
-      broadcastToAll('Stats could not be recorded.', {1,0,0})
+    if request.response_code == 500 or request.response_code == 400 then
+      broadcastToAll('There was an issue recording the game.', {1,0,0})
       gameState.isRecorded = false
+      return
+    end
+    local response = JSON.decode(request.text)
+    gameState.gameId = response.game.id
+    local color = gameState.winningTeam == 'liberal' and 'Blue' or 'Red'
+    local winningTeamStr = gameState.winningTeam == 'liberal' and 'Liberal ' or 'Fascist '
+    broadcastToAll(winningTeamStr .. gameState.winType .. ' win recorded.', stringColorToRGB(color))
+    getStats()
+  end
+end
+
+function updateGameResults()
+  local endpoint = baseUrl .. 'games/update/' .. gameState.gameId
+  local form = {
+    game_type = gameState.gameType,
+    submitter_id = gameState.host_id,
+    submitter_name = gameState.host_name,
+    winning_team = gameState.winningTeam,
+    win_type = gameState.winType,
+  }
+  WebRequest.post(endpoint, form, updateGameResultsCb)
+end
+
+function updateGameResultsCb(request)
+  if request.is_done then
+    if request.response_code == 500 or request.response_code == 400 then
+      broadcastToAll('There was an issue updating the game results.', {1,0,0})
       return
     end
     local color = gameState.winningTeam == 'liberal' and 'Blue' or 'Red'
     local winningTeamStr = gameState.winningTeam == 'liberal' and 'Liberal ' or 'Fascist '
-    broadcastToAll(winningTeamStr .. gameState.winType .. ' win recorded.', stringColorToRGB(color))
+    broadcastToAll('Game result was updated to a ' .. winningTeamStr .. gameState.winType .. ' win.', stringColorToRGB(color))
     getStats()
   end
 end

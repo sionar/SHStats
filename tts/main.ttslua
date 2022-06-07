@@ -1,5 +1,5 @@
 ------------------Constants
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
 START_POS = {['Secret Hitler: CE'] = {x = 100, y = 1.1, z = 8}, ['Secret Hitler: 55'] = {x = 0, y = 1.1, z = 70}}
@@ -16,7 +16,8 @@ gameState = {
   winningTeam = '',
   winType = '',
   hostId = '',
-  hostName = ''
+  hostName = '',
+  gameId = ''
 }
 leaderboard = {}
 overallStats = {}
@@ -184,9 +185,6 @@ function isRecordable()
   if not gameState.isStarted then
     broadcastToAll('Error recording game: Game not started.', {1,0,0})
     return false
-  elseif gameState.isRecorded then
-    broadcastToAll('Error recording game: Game already recorded for this session.', {1,0,0})
-    return false
   elseif gameState.numPlayers < 5 then
     broadcastToAll('Error recording game: Not enough players seated', {1,0,0})
     return false
@@ -200,11 +198,16 @@ function isRecordable()
   end
 end
 
-function recordGame(playerColor)
+function recordGame()
   if not isRecordable() then return end
-  gameState.isRecorded = true
-  postGame(playerColor)
-  checkReset()
+
+  if not gameState.isRecorded then
+    gameState.isRecorded = true
+    postGame()
+    checkReset()
+  else
+    updateGameResults()
+  end
   renderView()
 end
 
