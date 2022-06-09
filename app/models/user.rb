@@ -30,19 +30,19 @@ class User < ApplicationRecord
     [players.where(win: true).count / players.count.to_f, players.count]
   end
 
-  def self.sorted_by_total_wr(game_params)
+  def self.sorted_by_total_wr(game_params, games_params)
     @@game_params = game_params
-    User.joins(:games).where(game_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:total_wr).reverse!
+    User.joins(:games).where(games_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:total_wr).reverse!
   end
 
-  def self.sorted_by_lib_wr(game_params)
+  def self.sorted_by_lib_wr(game_params, games_params)
     @@game_params = game_params
-    User.joins(:games).where(game_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:lib_wr).reverse!
+    User.joins(:games).where(games_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:lib_wr).reverse!
   end
 
-  def self.sorted_by_fas_wr(game_params)
+  def self.sorted_by_fas_wr(game_params, games_params)
     @@game_params = game_params
-    User.joins(:games).where(game_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:fas_wr).reverse!
+    User.joins(:games).where(games_params).group('users.id').having('COUNT(games.id) > 10').sort_by(&:fas_wr).reverse!
   end
 
   def search_data
