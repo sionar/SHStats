@@ -150,8 +150,8 @@ function postGame()
   local endpoint = baseUrl .. 'games'
   local form = {
     game_type = gameState.gameType,
-    submitter_id = tostring(gameState.host_id),
-    submitter_name = tostring(gameState.host_name),
+    submitter_id = tostring(gameState.hostId),
+    submitter_name = tostring(gameState.hostName),
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
@@ -188,8 +188,8 @@ function updateGameResults()
   local endpoint = baseUrl .. 'games/' .. gameState.gameId
   local form = {
     game_type = gameState.gameType,
-    submitter_id = tostring(gameState.host_id),
-    submitter_name = tostring(gameState.host_name),
+    submitter_id = tostring(gameState.hostId),
+    submitter_name = tostring(gameState.hostName),
     winning_team = gameState.winningTeam,
     win_type = gameState.winType,
   }
