@@ -5,11 +5,11 @@ module Api
     def index
       case params[:sort_by]
       when 'total_wr'
-        @users = User.sorted_by_total_wr(game_params, games_params, params[:date_range])
+        @users = User.sorted_by_total_wr(game_params, games_params)
       when 'liberal_wr'
-        @users = User.sorted_by_lib_wr(game_params, games_params, params[:date_range)
+        @users = User.sorted_by_lib_wr(game_params, games_params)
       when 'fascist_wr'
-        @users = User.sorted_by_fas_wr(game_params, games_params, params[:date_range)
+        @users = User.sorted_by_fas_wr(game_params, games_params)
       end
       @users = @users.map do |user|
         get_stats(user)
