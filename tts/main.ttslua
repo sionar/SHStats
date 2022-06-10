@@ -1,5 +1,5 @@
 ------------------Constants
-VERSION = '0.2.1'
+VERSION = '0.3.0'
 DEBUG = false
 COLORS = {'White', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Teal', 'Brown'}
 START_POS = {['Secret Hitler: CE'] = {x = 100, y = 1.1, z = 8}, ['Secret Hitler: 55'] = {x = 0, y = 1.1, z = 70}}
@@ -26,6 +26,7 @@ statsSettings = {
   view = 'main',
   numPlayers = 0,
   gameType = 'vanilla',
+  dateRange = 'Any',
   offset = 1,
   minGames = 0,
   isLatestVersion = true,
@@ -177,6 +178,23 @@ function toggleNumPlayers()
     statsSettings.numPlayers = 0
   elseif statsSettings.numPlayers == 0 then
     statsSettings.numPlayers = 5
+  end
+  sendRequest()
+end
+
+function toggleDateRange()
+  if statsSettings.dateRange == 'Any' then
+    statsSettings.dateRange = '1w'
+  elseif statsSettings.dateRange == '1w' then
+    statsSettings.dateRange = '1m'
+  elseif statsSettings.dateRange == '1m' then
+    statsSettings.dateRange = '3m'
+  elseif statsSettings.dateRange == '3m' then
+    statsSettings.dateRange = '6m'
+  elseif statsSettings.dateRange == '6m' then
+    statsSettings.dateRange = '1y'
+  elseif statsSettings.dateRange == '1y' then
+    statsSettings.dateRange = 'Any'
   end
   sendRequest()
 end

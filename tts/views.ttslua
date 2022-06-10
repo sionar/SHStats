@@ -37,11 +37,11 @@ end
 function renderButtonPanelMain()
   local buttonParam = {}
   if gameState.gameType == 'vanilla' then
-      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nVanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
-          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type: Vanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
+          position = {-1.28,0.2,1.45}, width = 2200, height = 250, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
   else
-      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nExpansion", color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
-          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type: Expansion", color = {96/255,160/255,91/255}, font_color = stringColorToRGB('White'), function_owner = self,
+          position = {-1.28,0.2,1.45}, width = 2200, height = 250, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
   end
   self.createButton(buttonParam)
 
@@ -49,9 +49,14 @@ function renderButtonPanelMain()
   if statsSettings.numPlayers ~= 0 then
       gameSizeText = statsSettings.numPlayers
   end
-  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players:\n"..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
-      position = {-0.96,0.2,1.6}, width = 1000, height = 800, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players: "..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-1.28,0.2,1.6}, width = 2200, height = 250, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
   self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeDateRange', label = "Date Range: "..statsSettings.dateRange, color = {206/255,91/255,37/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-1.28,0.2,1.75}, width = 2200, height = 250, font_size = 150, tooltip = 'Set the limit for age of recorded games.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
 
   buttonParam = {click_function = 'handleUpdatePlayers', label = "Update\nPlayers", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,
       position = {-0.32,0.2,1.6}, width = 1000, height = 800, font_size = 200, scale = {0.25,0.25,0.25}}
@@ -81,11 +86,11 @@ end
 function renderButtonPanelOther()
   local buttonParam = {}
   if gameState.gameType == 'vanilla' then
-      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nVanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
-          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type: Vanilla", color = {246/255,218/255,136/255}, font_color = stringColorToRGB('Black'), function_owner = self,
+          position = {-1.28,0.2,1.45}, width = 2200, height = 250, font_size = 180, tooltip = 'Current game mode is set to vanilla', scale = {0.25,0.25,0.25}}
   else
-      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type:\nExpansion", color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
-          position = {-1.6,0.2,1.6}, width = 1000, height = 800, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
+      buttonParam = {click_function = 'handleChangeGameType', label = "Game Type: Expansion", color = {96/255,160/255,91/255}, font_color = stringColorToRGB('White'), function_owner = self,
+          position = {-1.28,0.2,1.45}, width = 2200, height = 250, font_size = 180, tooltip = 'Current game mode is set to expansion', scale = {0.25,0.25,0.25}}
   end
   self.createButton(buttonParam)
 
@@ -93,8 +98,12 @@ function renderButtonPanelOther()
   if statsSettings.numPlayers ~= 0 then
       gameSizeText = statsSettings.numPlayers
   end
-  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players:\n"..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
-      position = {-0.96,0.2,1.6}, width = 1000, height = 800, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+  buttonParam = {click_function = 'handleChangeNumPlayers', label = "Num Players: "..gameSizeText, color = {91/255,37/255,206/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-1.28,0.2,1.6}, width = 2200, height = 250, font_size = 150, tooltip = 'Set which game size to show stats for.', scale = {0.25,0.25,0.25}}
+  self.createButton(buttonParam)
+
+  buttonParam = {click_function = 'handleChangeDateRange', label = "Date Range: "..statsSettings.dateRange, color = {206/255,91/255,37/255}, font_color = stringColorToRGB('White'), function_owner = self,
+      position = {-1.28,0.2,1.75}, width = 2200, height = 250, font_size = 150, tooltip = 'Set the limit for age of recorded games.', scale = {0.25,0.25,0.25}}
   self.createButton(buttonParam)
 
   buttonParam = {click_function = 'handleChangeViewToMain', label = "Main\nStats", color = {1,1,1,1}, font_color = stringColorToRGB('Black'), function_owner = self,

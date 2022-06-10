@@ -39,7 +39,7 @@ function compareVersions(latestVersion, thisVersion)
 end
 
 function generateQuery()
-  local query = 'get_stats?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'
+  local query = 'get_stats?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&date_range=' .. statsSettings.dateRange .. '&'
   local i = 0
   for k,v in pairs(gameState.sessionPlayers) do
     if v.steam_id and v.steam_name then
@@ -69,7 +69,7 @@ function getStatsCb(request)
 end
 
 function getOverallStats()
-  local query = 'games?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers
+  local query = 'games?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&date_range=' .. statsSettings.dateRange
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, getOverallStatsCb)
 end
@@ -87,7 +87,7 @@ function getOverallStatsCb(request)
 end
 
 function getLeaderboard(sort_by)
-  local query = 'users?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&sort_by=' .. sort_by
+  local query = 'users?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&date_range=' .. statsSettings.dateRange .. '&sort_by=' .. sort_by
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, getLeaderboardCb)
 end
@@ -110,7 +110,7 @@ end
 function lookupPlayer()
   local steamIdStr = statsSettings.lookupId and statsSettings.lookupId ~='' and 'steam_id=' .. statsSettings.lookupId .. '&' or ''
   local steamNameStr = statsSettings.lookupName and statsSettings.lookupName ~= '' and 'steam_name=' .. statsSettings.lookupName .. '&' or ''
-  local query = 'search?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&'.. steamIdStr .. steamNameStr
+  local query = 'search?game_type=' .. statsSettings.gameType .. '&num_players=' .. statsSettings.numPlayers .. '&date_range=' .. statsSettings.dateRange .. '&'.. steamIdStr .. steamNameStr
   local endpoint = baseUrl .. query
   WebRequest.get(endpoint, lookupCb)
 end

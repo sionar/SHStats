@@ -22,8 +22,11 @@ function handleChangeGameType(clickedButton, playerColor)
 end
 
 function handleChangeNumPlayers(clickedButton, playerColor)
-  if not hasPermission(playerColor) then return end
   toggleNumPlayers()
+end
+
+function handleChangeDateRange(clickedButton, playerColor)
+  toggleDateRange()
 end
 
 function handleRecordLibWinPolicy(clickedButton, playerColor)
