@@ -23,11 +23,11 @@ module Api
     end
 
     def index
-      games = Game.where(game_params)
+      games = Game.where(game_params).where(date_params)
       @stats = []
       @stats.push(game_stats(games, :any))
       (5..10).each do |i|
-        games = Game.where(game_params).where(num_players: i)
+        games = Game.where(game_params).where(num_players: i).where(date_params)
         @stats.push(game_stats(games, i))
       end
       render :index, status: 200
@@ -65,6 +65,23 @@ module Api
         liberal_wins_policy: games.where(winning_team: 'liberal', win_type: 'policy').count,
         fascist_wins_policy: games.where(winning_team: 'fascist', win_type: 'policy').count
       }
+    end
+
+    def date_params
+      case params[:date_range]
+      when '1w'
+        {created_at: Date.today.prev_day(7)..Time.now}
+      when '1m'
+        {created_at: Date.today.prev_month..Time.now}
+      when '3m'
+        {created_at: Date.today.prev_month(3)..Time.now}
+      when '6m'
+        {created_at: Date.today.prev_month(6)..Time.now}
+      when '1y'
+        {created_at: Date.today.prev_year..Time.now}
+      else
+        {created_at: Date.new(2022,1,1)..Time.now}
+      end
     end
 
     def is_missing_params?

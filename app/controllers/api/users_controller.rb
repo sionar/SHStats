@@ -5,11 +5,11 @@ module Api
     def index
       case params[:sort_by]
       when 'total_wr'
-        @users = User.sorted_by_total_wr(game_params, games_params)
+        @users = User.sorted_by_total_wr(game_params, games_params, params[:date_range])
       when 'liberal_wr'
-        @users = User.sorted_by_lib_wr(game_params, games_params)
+        @users = User.sorted_by_lib_wr(game_params, games_params, params[:date_range)
       when 'fascist_wr'
-        @users = User.sorted_by_fas_wr(game_params, games_params)
+        @users = User.sorted_by_fas_wr(game_params, games_params, params[:date_range)
       end
       @users = @users.map do |user|
         get_stats(user)
@@ -67,6 +67,7 @@ module Api
       p = {}
       p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
       p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
+      p[:'game.created_at'] = date_params[:created_at]
       p
     end
 
@@ -74,12 +75,30 @@ module Api
       p = {}
       p[:'games.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
       p[:'games.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
+      p[:'games.created_at'] = date_params[:created_at]
       p
+    end
+
+    def date_params
+      case params[:date_range]
+      when '1w'
+        {created_at: Date.today.prev_day(7)..Time.now}
+      when '1m'
+        {created_at: Date.today.prev_month..Time.now}
+      when '3m'
+        {created_at: Date.today.prev_month(3)..Time.now}
+      when '6m'
+        {created_at: Date.today.prev_month(6)..Time.now}
+      when '1y'
+        {created_at: Date.today.prev_year..Time.now}
+      else
+        {created_at: Date.new(2022,1,1)..Time.now}
+      end
     end
 
     def get_stats(user)
       user_obj = {}
-      players = Player.joins(:user, :game).where(user:).where(game_params)
+      players = Player.joins(:user, :game).where(user:).where(game_params).where(date_params)
       user_obj[:steam_id] = user.steam_id
       user_obj[:steam_name] = user.steam_name
       user_obj[:total_games] = players.count
