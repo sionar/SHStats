@@ -318,7 +318,9 @@ function renderLookupTable()
     table.insert(labelsLeft, "Liberal Games Played: " .. statsSettings.lookupStats.liberal_games)
     table.insert(labelsLeft, "Liberal Games Won: " .. statsSettings.lookupStats.liberal_wins)
     table.insert(labelsLeft, "Liberal Winrate: " .. floatAsPercentage(statsSettings.lookupStats.liberal_wins / statsSettings.lookupStats.liberal_games))
-    table.insert(labelsLeft, "Gamble Attempts: " .. statsSettings.lookupStats.gamble_attempts)
+    if statsSettings.gameType == 'expansion' then
+      table.insert(labelsLeft, "Gamble Attempts: " .. statsSettings.lookupStats.gamble_attempts)
+    end
 
     local labelsRight = {}
     table.insert(labelsRight, "Fascist Games Played: " .. statsSettings.lookupStats.fascist_games)
@@ -328,7 +330,9 @@ function renderLookupTable()
     table.insert(labelsRight, "Hitler Games Played: " .. statsSettings.lookupStats.hitler_games)
     table.insert(labelsRight, "Hitler Games Won: " .. statsSettings.lookupStats.hitler_wins)
     table.insert(labelsRight, "Hitler Winrate: " .. floatAsPercentage(statsSettings.lookupStats.hitler_wins / statsSettings.lookupStats.hitler_games))
-    table.insert(labelsRight, "Gamble Success Rate: " .. floatAsPercentage(statsSettings.lookupStats.gamble_successes / statsSettings.lookupStats.gamble_attempts))
+    if statsSettings.gameType == 'expansion' then
+      table.insert(labelsRight, "Gamble Success Rate: " .. floatAsPercentage(statsSettings.lookupStats.gamble_successes / statsSettings.lookupStats.gamble_attempts))
+    end
 
     self.createButton({click_function = 'nullFunc', label = statsSettings.lookupStats.steam_name, color = {0,0,0}, font_color = stringColorToRGB("White"), function_owner = self,
         position = {0, 0.2, -1}, width = 0, height = 0, font_size = 400, scale = {0.25,0.25,0.25}})
