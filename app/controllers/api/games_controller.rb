@@ -10,8 +10,13 @@ module Api
 
       submitter = User.find_by(steam_id: params[:submitter_id])
       submitter ||= User.create!(steam_id: params[:submitter_id], steam_name: params[:submitter_name])
-      @game = Game.create!(game_type: params[:game_type], num_players: params[:num_players],
-                           winning_team: params[:winning_team], win_type: params[:win_type], submitter_id: submitter.id, submitter_ip: request.remote_ip)
+      @game = Game.create!(game_type: params[:game_type], 
+                           num_players: params[:num_players],
+                           winning_team: params[:winning_team], 
+                           win_type: params[:win_type], 
+                           submitter_id: submitter.id, 
+                           submitter_ip: request.remote_ip
+                           season: CURRENT_SEASON)
       ints = param_ints
       ints.each do |i|
         user = create_or_update_user(i)
@@ -54,6 +59,7 @@ module Api
     def game_params
       p = {}
       p[:game_type] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
+      p[:season] = params[:season] if params[:season] && params[:season] != '0'
       p
     end
 
