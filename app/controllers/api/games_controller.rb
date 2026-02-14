@@ -2,6 +2,8 @@
 
 module Api
   class GamesController < ApplicationController
+    CURRENT_SEASON = 2
+
     def create
       unless request.headers['User-Agent'].include? 'UnityPlayer'
         render json: { errors: ['There was an issue submitting the game.'] },
