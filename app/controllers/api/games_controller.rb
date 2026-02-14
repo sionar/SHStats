@@ -14,9 +14,9 @@ module Api
                            num_players: params[:num_players],
                            winning_team: params[:winning_team], 
                            win_type: params[:win_type], 
+                           season: CURRENT_SEASON,
                            submitter_id: submitter.id, 
-                           submitter_ip: request.remote_ip
-                           season: CURRENT_SEASON)
+                           submitter_ip: request.remote_ip)
       ints = param_ints
       ints.each do |i|
         user = create_or_update_user(i)
