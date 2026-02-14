@@ -61,7 +61,7 @@ module Api
     def game_params
       p = {}
       p[:game_type] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
-      p[:season] = params[:season] if params[:season] && params[:season] != '0'
+      p[:season] = params[:season].to_i if params[:season] && params[:season] != '0'
       p
     end
 

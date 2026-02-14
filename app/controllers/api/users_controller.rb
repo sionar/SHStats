@@ -67,6 +67,7 @@ module Api
       p = {}
       p[:'game.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
       p[:'game.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
+      p[:'game.season'] = params[:season].to_i if params[:season] && params[:season] != '0'
       p[:'game.created_at'] = date_params[:created_at]
       p
     end
@@ -76,6 +77,7 @@ module Api
       p[:'games.num_players'] = params[:num_players] if params[:num_players] && params[:num_players] != '0'
       p[:'games.game_type'] = params[:game_type] if params[:game_type] && params[:game_type] != 'any'
       p[:'games.created_at'] = date_params[:created_at]
+      p[:'games.season'] = params[:season].to_i if params[:season] && params[:season] != '0'
       p
     end
 
